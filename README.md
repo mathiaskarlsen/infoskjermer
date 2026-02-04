@@ -14,8 +14,8 @@ A Drupal 11 site built with Composer and managed with DDEV.
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url> my-site
-   cd my-site
+   git clone https://github.com/mathiaskarlsen/infoskjermer infoskjermer
+   cd infoskjermer
    ```
 
 2. **Install dependencies with Composer**
@@ -90,7 +90,7 @@ ddev drush cr
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url> /var/www/html
+   git clone https://github.com/mathiaskarlsen/infoskjermer /var/www/html
    cd /var/www/html
    ```
 
