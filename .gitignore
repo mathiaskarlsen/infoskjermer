@@ -17,8 +17,8 @@
 # custom module, theme, etc., are not ignored unless you purposely do so.
 /vendor/
 
-# Ignore configuration files that may contain sensitive information.
-/web/sites/*/settings*.php
+# Ignore local overrides, track shared settings.php. 
+/web/sites/*/settings.local.php
 /web/sites/*/services*.yml
 
 # Ignore paths that contain user-generated content.
