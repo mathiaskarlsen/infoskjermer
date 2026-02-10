@@ -1,8 +1,8 @@
 _core:
   default_config_hash: ijfbzDTN4CbE7Sr-6ubWzy_t1vH4OtU1doNCLssVz-4
 langcode: en
-uuid: 6e25ec96-e1fd-40ec-b7d2-3523c4cee179
-name: 'Drush Site-Install'
+uuid: 93676b96-b6ff-4e48-aed8-91895ead070b
+name: Infoskjermer
 mail: admin@example.com
 slogan: ''
 page:
