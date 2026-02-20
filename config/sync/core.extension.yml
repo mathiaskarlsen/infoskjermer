@@ -10,6 +10,7 @@ module:
   ckeditor5: 0
   comment: 0
   config: 0
+  config_ignore: 0
   contextual: 0
   datetime: 0
   dblog: 0
@@ -45,4 +46,5 @@ module:
 theme:
   olivero: 0
   claro: 0
+  stable9: 0
 profile: standard
