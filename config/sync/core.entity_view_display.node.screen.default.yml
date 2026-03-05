@@ -1,0 +1,39 @@
+uuid: 6e92c727-ec24-4713-867d-5183e3dcf025
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.screen.field_location
+    - field.field.node.screen.field_status
+    - node.type.screen
+  module:
+    - options
+    - user
+id: node.screen.default
+targetEntityType: node
+bundle: screen
+mode: default
+content:
+  field_location:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  field_status:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 102
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden: {  }
