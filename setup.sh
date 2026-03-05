@@ -1,4 +1,3 @@
-drush is not available. You may need to 'ddev composer require drush/drush'
 #!/usr/bin/env bash
 set -euo pipefail
 
