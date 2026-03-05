@@ -1,3 +1,4 @@
+drush is not available. You may need to 'ddev composer require drush/drush'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -7,6 +8,9 @@ RESET="${1:-}"
 
 echo "==> Starting DDEV…"
 ddev start
+
+echo "==> Installing drush…"
+ddev composer require drush/drush
 
 if [[ "$RESET" == "--reset" ]]; then
   echo "==> Dropping DB (reset)…"
