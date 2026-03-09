@@ -8,7 +8,7 @@ third_party_settings:
   menu_ui:
     available_menus: {  }
     parent: ''
-name: 'Screen content'
+name: Slide
 type: screen_content
 description: null
 help: null

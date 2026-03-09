@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.node.screen.field_enabled_media
     - field.field.node.screen.field_location
     - field.field.node.screen.field_status
     - node.type.screen
@@ -14,6 +15,14 @@ targetEntityType: node
 bundle: screen
 mode: default
 content:
+  field_enabled_media:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 103
+    region: content
   field_location:
     type: list_default
     label: above

@@ -3,21 +3,29 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.node.screen_content.field_duration
     - field.field.node.screen_content.field_end_date
     - field.field.node.screen_content.field_media
     - field.field.node.screen_content.field_start_date
     - field.field.node.screen_content.field_status
-    - field.field.node.screen_content.field_text
     - node.type.screen_content
   module:
     - datetime
-    - text
     - user
 id: node.screen_content.default
 targetEntityType: node
 bundle: screen_content
 mode: default
 content:
+  field_duration:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 107
+    region: content
   field_end_date:
     type: datetime_default
     label: above
@@ -53,13 +61,6 @@ content:
       format_custom_true: ''
     third_party_settings: {  }
     weight: 103
-    region: content
-  field_text:
-    type: text_default
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 101
     region: content
   links:
     settings: {  }

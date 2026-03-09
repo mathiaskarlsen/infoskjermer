@@ -1,29 +1,29 @@
-uuid: 42e1a588-6ca0-41f7-844e-4ed4b74fe403
+uuid: 5a13cce1-9614-4f0d-b9f8-83ca23d53abc
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_media
-    - media.type.image
+    - field.storage.node.field_enabled_media
+    - node.type.screen
     - node.type.screen_content
-id: node.screen_content.field_media
-field_name: field_media
+id: node.screen.field_enabled_media
+field_name: field_enabled_media
 entity_type: node
-bundle: screen_content
-label: Image
+bundle: screen
+label: Media
 description: ''
 required: false
 translatable: false
 default_value: {  }
 default_value_callback: ''
 settings:
-  handler: 'default:media'
+  handler: 'default:node'
   handler_settings:
     target_bundles:
-      image: image
+      screen_content: screen_content
     sort:
       field: _none
       direction: ASC
     auto_create: false
-    auto_create_bundle: image
+    auto_create_bundle: ''
 field_type: entity_reference
