@@ -4,11 +4,13 @@ status: true
 dependencies:
   config:
     - filter.format.basic_html
+    - node.type.screen_content
   module:
     - comment
     - file
     - filter
     - media
+    - node
     - search
     - shortcut
     - system
@@ -22,7 +24,10 @@ permissions:
   - 'access comments'
   - 'access content'
   - 'access shortcuts'
+  - 'create screen_content content'
   - 'delete own files'
+  - 'delete own screen_content content'
+  - 'edit own screen_content content'
   - 'post comments'
   - 'search content'
   - 'skip comment approval'
