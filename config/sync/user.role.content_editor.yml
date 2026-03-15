@@ -5,6 +5,7 @@ dependencies:
   config:
     - node.type.article
     - node.type.page
+    - node.type.screen_content
     - taxonomy.vocabulary.tags
   module:
     - comment
@@ -37,6 +38,7 @@ permissions:
   - 'delete own files'
   - 'delete own page content'
   - 'delete page revisions'
+  - 'edit any screen_content content'
   - 'edit own article content'
   - 'edit own comments'
   - 'edit own page content'
