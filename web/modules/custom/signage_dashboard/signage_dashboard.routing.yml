@@ -1,0 +1,7 @@
+my_dashboard.page:
+  path: '/dashboard'
+  defaults:
+    _controller: '\Drupal\signage_dashboard\Controller\DashboardController::build'
+    _title: 'Dashboard'
+  requirements:
+    _access: 'TRUE'
