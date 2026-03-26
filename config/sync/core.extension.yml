@@ -35,6 +35,7 @@ module:
   path_alias: 0
   search: 0
   shortcut: 0
+  signage: 0
   signage_dashboard: 0
   system: 0
   taxonomy: 0
@@ -49,5 +50,4 @@ theme:
   olivero: 0
   claro: 0
   stable9: 0
-  signage: 0
 profile: standard
