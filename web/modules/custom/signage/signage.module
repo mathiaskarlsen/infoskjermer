@@ -1,0 +1,17 @@
+<?php
+
+function signage_theme() {
+  return [
+    'page__screen' => [
+      'template' => 'page--screen',
+      'base hook' => 'page',
+    ],
+  ];
+}
+
+function signage_theme_suggestions_page_alter(&$suggestions, $variables) {
+  $path = \Drupal::service('path.current')->getPath();
+  if (str_starts_with($path, '/screen')) {
+    $suggestions[] = 'page__screen';
+  }
+}
