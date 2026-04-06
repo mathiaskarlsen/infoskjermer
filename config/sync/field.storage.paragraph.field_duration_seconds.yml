@@ -1,12 +1,12 @@
-uuid: 02efb905-bdee-4a60-a982-5ce34ada85c7
+uuid: 266c8bc9-9236-47e7-a7b3-9f4656434870
 langcode: en
 status: true
 dependencies:
   module:
-    - node
-id: node.field_duration
-field_name: field_duration
-entity_type: node
+    - paragraphs
+id: paragraph.field_duration_seconds
+field_name: field_duration_seconds
+entity_type: paragraph
 type: integer
 settings:
   unsigned: false

@@ -1,0 +1,21 @@
+uuid: 238c64d6-3755-462d-94bd-7009f83396c9
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_building
+    - node.type.location
+  module:
+    - options
+id: node.location.field_building
+field_name: field_building
+entity_type: node
+bundle: location
+label: Building
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -1,15 +1,15 @@
-uuid: e439c195-bb18-485c-9b9d-f386c521c7a8
+uuid: cac724ae-82bd-4532-95a1-d90bbd405db3
 langcode: en
 status: true
 dependencies:
   module:
     - node
-id: node.field_location
-field_name: field_location
+id: node.field_body
+field_name: field_body
 entity_type: node
-type: entity_reference
+type: string_long
 settings:
-  target_type: node
+  case_sensitive: false
 module: core
 locked: false
 cardinality: 1

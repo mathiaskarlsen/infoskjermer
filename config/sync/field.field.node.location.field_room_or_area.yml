@@ -1,0 +1,21 @@
+uuid: 47b7e138-f409-4c78-9016-f6a4d1dedfc5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_room_or_area
+    - node.type.location
+  module:
+    - options
+id: node.location.field_room_or_area
+field_name: field_room_or_area
+entity_type: node
+bundle: location
+label: Area
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

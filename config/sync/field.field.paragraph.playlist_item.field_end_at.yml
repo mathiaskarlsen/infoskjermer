@@ -1,0 +1,21 @@
+uuid: 308db285-e322-4acc-b8c6-41e4c5309fdb
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_end_at
+    - paragraphs.paragraphs_type.playlist_item
+  module:
+    - datetime
+id: paragraph.playlist_item.field_end_at
+field_name: field_end_at
+entity_type: paragraph
+bundle: playlist_item
+label: 'End at'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

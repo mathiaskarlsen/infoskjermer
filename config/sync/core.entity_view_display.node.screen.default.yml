@@ -3,32 +3,32 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.screen.field_enabled_media
     - field.field.node.screen.field_location
+    - field.field.node.screen.field_playlist
     - field.field.node.screen.field_status
     - node.type.screen
   module:
-    - options
     - user
 id: node.screen.default
 targetEntityType: node
 bundle: screen
 mode: default
 content:
-  field_enabled_media:
+  field_location:
     type: entity_reference_label
     label: above
     settings:
       link: true
     third_party_settings: {  }
-    weight: 103
+    weight: 105
     region: content
-  field_location:
-    type: list_default
+  field_playlist:
+    type: entity_reference_label
     label: above
-    settings: {  }
+    settings:
+      link: true
     third_party_settings: {  }
-    weight: 101
+    weight: 104
     region: content
   field_status:
     type: boolean

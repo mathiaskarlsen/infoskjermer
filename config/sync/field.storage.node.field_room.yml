@@ -1,0 +1,30 @@
+uuid: e1d08621-6f48-4c31-a18d-457217bd685a
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_room
+field_name: field_room
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: e1780
+      label: E1780
+    -
+      value: b1070
+      label: B1070
+    -
+      value: d1090
+      label: D1090
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

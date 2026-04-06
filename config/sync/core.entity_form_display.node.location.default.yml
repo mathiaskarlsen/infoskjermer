@@ -1,23 +1,21 @@
-uuid: 31779213-e5c6-4115-acbf-68477994e487
+uuid: 5109e411-664a-497b-a83f-8a7db14582d8
 langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.screen_content.field_duration
-    - field.field.node.screen_content.field_end_date
-    - field.field.node.screen_content.field_media
-    - field.field.node.screen_content.field_screens
-    - field.field.node.screen_content.field_start_date
-    - field.field.node.screen_content.field_status
-    - field.field.node.screen_content.field_text
-    - node.type.screen_content
+    - field.field.node.location.field_building
+    - field.field.node.location.field_city
+    - field.field.node.location.field_display_name
+    - field.field.node.location.field_floor
+    - field.field.node.location.field_location_status
+    - field.field.node.location.field_room
+    - field.field.node.location.field_room_or_area
+    - node.type.location
   module:
-    - datetime
     - path
-    - text
-id: node.screen_content.default
+id: node.location.default
 targetEntityType: node
-bundle: screen_content
+bundle: location
 mode: default
 content:
   created:
@@ -26,59 +24,49 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_duration:
-    type: number
-    weight: 127
-    region: content
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-  field_end_date:
-    type: datetime_default
-    weight: 125
+  field_building:
+    type: options_select
+    weight: 122
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_media:
-    type: entity_reference_autocomplete
-    weight: 122
+  field_city:
+    type: options_select
+    weight: 121
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_display_name:
+    type: string_textfield
+    weight: 127
     region: content
     settings:
-      match_operator: CONTAINS
-      match_limit: 10
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_screens:
-    type: entity_reference_autocomplete
-    weight: 128
+  field_floor:
+    type: options_select
+    weight: 123
     region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
+    settings: {  }
     third_party_settings: {  }
-  field_start_date:
-    type: datetime_default
+  field_location_status:
+    type: options_select
     weight: 126
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_status:
-    type: boolean_checkbox
-    weight: 123
+  field_room:
+    type: options_select
+    weight: 125
     region: content
-    settings:
-      display_label: true
+    settings: {  }
     third_party_settings: {  }
-  field_text:
-    type: text_textarea
-    weight: 128
+  field_room_or_area:
+    type: options_select
+    weight: 124
     region: content
-    settings:
-      rows: 5
-      placeholder: ''
+    settings: {  }
     third_party_settings: {  }
   path:
     type: path

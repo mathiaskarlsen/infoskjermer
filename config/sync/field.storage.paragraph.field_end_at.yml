@@ -1,13 +1,13 @@
-uuid: f7d60402-43f6-4664-b009-1c7ba2f0f6a7
+uuid: 7f7affc5-a689-4552-9463-fbee36811af7
 langcode: en
 status: true
 dependencies:
   module:
     - datetime
-    - node
-id: node.field_end_date
-field_name: field_end_date
-entity_type: node
+    - paragraphs
+id: paragraph.field_end_at
+field_name: field_end_at
+entity_type: paragraph
 type: datetime
 settings:
   datetime_type: datetime
