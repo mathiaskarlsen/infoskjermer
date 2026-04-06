@@ -1,0 +1,31 @@
+uuid: 263bc1fd-3e86-40d2-90d6-df790faf42ba
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.playlist_item.field_slide
+    - field.field.paragraph.playlist_item.field_sort_order
+    - paragraphs.paragraphs_type.playlist_item
+id: paragraph.playlist_item.default
+targetEntityType: paragraph
+bundle: playlist_item
+mode: default
+content:
+  field_slide:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_sort_order:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 1
+    region: content
+hidden: {  }
