@@ -169,7 +169,8 @@ class ScreenPlaybackResolver {
       return '';
     }
 
-    return trim((string) $slide->get('field_body')->value);
+    $value = (string) $slide->get('field_body')->value;
+    return trim(html_entity_decode(strip_tags($value)));
   }
 
   protected function getSlideMediaUrl(NodeInterface $slide): ?string {

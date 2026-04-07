@@ -14,14 +14,11 @@
 
         const viewport = container.querySelector('#signage-player-slide') || container;
         const items = Array.isArray(playback.items) ? playback.items : [];
+        const fallbackReason = playback?.status?.fallback_reason || null;
 
-        if (!items.length) {
-          viewport.textContent = 'No active slides.';
-          return;
-        }
-
-        let currentIndex = 0;
         let timerId = null;
+        let reloadTimerId = null;
+        let currentIndex = 0;
 
         const clearViewport = () => {
           while (viewport.firstChild) {
@@ -32,6 +29,40 @@
         const getDurationMs = (item) => {
           const seconds = Number(item.duration) || 10;
           return Math.max(seconds, 1) * 1000;
+        };
+
+        const getFallbackMessage = (reason) => {
+          switch (reason) {
+            case 'screen_not_found':
+              return 'Screen not found.';
+            case 'playlist_missing':
+              return 'No playlist is connected to this screen.';
+            case 'playlist_empty':
+              return 'This playlist has no items.';
+            case 'no_active_items':
+              return 'No active slides right now.';
+            default:
+              return 'Nothing to display.';
+          }
+        };
+
+        const renderFallback = (reason) => {
+          clearViewport();
+
+          const fallback = document.createElement('div');
+          fallback.className = 'signage-player__fallback';
+
+          const title = document.createElement('h2');
+          title.className = 'signage-player__fallback-title';
+          title.textContent = 'Player status';
+
+          const message = document.createElement('p');
+          message.className = 'signage-player__fallback-message';
+          message.textContent = getFallbackMessage(reason);
+
+          fallback.appendChild(title);
+          fallback.appendChild(message);
+          viewport.appendChild(fallback);
         };
 
         const renderItem = (item) => {
@@ -73,11 +104,24 @@
           timerId = window.setTimeout(showNext, getDurationMs(item));
         };
 
-        showNext();
+        if (!items.length) {
+          renderFallback(fallbackReason);
+        }
+        else {
+          showNext();
+        }
+
+        reloadTimerId = window.setTimeout(() => {
+          window.location.reload();
+        }, 60000);
 
         container.addEventListener('signagePlayer:destroy', () => {
           if (timerId) {
             window.clearTimeout(timerId);
+          }
+
+          if (reloadTimerId) {
+            window.clearTimeout(reloadTimerId);
           }
         });
       });
