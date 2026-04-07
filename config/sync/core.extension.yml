@@ -37,6 +37,7 @@ module:
   search: 0
   shortcut: 0
   signage_dashboard: 0
+  signage_player: 0
   system: 0
   taxonomy: 0
   text: 0
