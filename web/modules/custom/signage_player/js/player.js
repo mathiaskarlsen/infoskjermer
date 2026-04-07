@@ -12,7 +12,7 @@
           return;
         }
 
-        const viewport = container.querySelector('.signage-player__viewport') || container;
+        const viewport = container.querySelector('#signage-player-slide') || container;
         const items = Array.isArray(playback.items) ? playback.items : [];
 
         if (!items.length) {
