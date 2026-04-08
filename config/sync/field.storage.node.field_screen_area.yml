@@ -1,0 +1,33 @@
+uuid: a15ea93a-1159-458a-a0f8-4e5523327717
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_screen_area
+field_name: field_screen_area
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: e_floy
+      label: E-fløy
+    -
+      value: b_floy
+      label: B-fløy
+    -
+      value: d_floy
+      label: D-fløy
+    -
+      value: glassgata
+      label: Glassgata
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -3,8 +3,8 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.slide.field_body
-    - field.field.node.slide.field_media
+    - field.field.node.slide.field_slide_body
+    - field.field.node.slide.field_slide_media
     - node.type.slide
   module:
     - text
@@ -14,21 +14,21 @@ targetEntityType: node
 bundle: slide
 mode: default
 content:
-  field_body:
+  field_slide_body:
     type: text_default
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 102
+    weight: 103
     region: content
-  field_media:
+  field_slide_media:
     type: entity_reference_entity_view
     label: above
     settings:
       view_mode: default
       link: false
     third_party_settings: {  }
-    weight: 101
+    weight: 104
     region: content
   links:
     settings: {  }

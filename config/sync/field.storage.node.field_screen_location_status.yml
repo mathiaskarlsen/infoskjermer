@@ -1,0 +1,27 @@
+uuid: 408a0316-49f2-4f3a-a2f8-f443e76bd797
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_screen_location_status
+field_name: field_screen_location_status
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: active
+      label: Active
+    -
+      value: inactive
+      label: Inactive
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

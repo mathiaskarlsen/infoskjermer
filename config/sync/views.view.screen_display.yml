@@ -1,6 +1,6 @@
 uuid: f37939de-9821-46cf-a441-f54a7d932880
 langcode: en
-status: false
+status: true
 dependencies:
   config:
     - node.type.screen

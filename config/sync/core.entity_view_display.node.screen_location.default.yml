@@ -1,0 +1,68 @@
+uuid: 3a6314ad-b913-4fc0-b35f-67af252dde03
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.screen_location.field_screen_area
+    - field.field.node.screen_location.field_screen_building
+    - field.field.node.screen_location.field_screen_city
+    - field.field.node.screen_location.field_screen_floor
+    - field.field.node.screen_location.field_screen_location_status
+    - field.field.node.screen_location.field_screen_room
+    - node.type.screen_location
+  module:
+    - options
+    - user
+id: node.screen_location.default
+targetEntityType: node
+bundle: screen_location
+mode: default
+content:
+  field_screen_area:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  field_screen_building:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 102
+    region: content
+  field_screen_city:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 104
+    region: content
+  field_screen_floor:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 103
+    region: content
+  field_screen_location_status:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 106
+    region: content
+  field_screen_room:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 105
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden: {  }

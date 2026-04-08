@@ -2,7 +2,6 @@
 
 namespace Drupal\signage_player\Service;
 
-use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
@@ -47,12 +46,12 @@ class ScreenPlaybackResolver {
     ];
     $result['status']['screen_found'] = true;
 
-    if (!$screen->hasField('field_playlist') || $screen->get('field_playlist')->isEmpty()) {
+    if (!$screen->hasField('field_screen_playlist') || $screen->get('field_screen_playlist')->isEmpty()) {
       $result['status']['fallback_reason'] = 'playlist_missing';
       return $result;
     }
 
-    $playlist = $screen->get('field_playlist')->entity;
+    $playlist = $screen->get('field_screen_playlist')->entity;
 
     if (!$playlist instanceof NodeInterface || $playlist->bundle() !== 'playlist') {
       $result['status']['fallback_reason'] = 'playlist_missing';
@@ -65,13 +64,13 @@ class ScreenPlaybackResolver {
     ];
     $result['status']['playlist_found'] = true;
 
-    if (!$playlist->hasField('field_items') || $playlist->get('field_items')->isEmpty()) {
+    if (!$playlist->hasField('field_playlist_items') || $playlist->get('field_playlist_items')->isEmpty()) {
       $result['status']['fallback_reason'] = 'playlist_empty';
       return $result;
     }
 
     $items = [];
-    $paragraphs = $playlist->get('field_items')->referencedEntities();
+    $paragraphs = $playlist->get('field_playlist_items')->referencedEntities();
 
     foreach ($paragraphs as $paragraph) {
       if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'playlist_item') {
@@ -86,7 +85,7 @@ class ScreenPlaybackResolver {
         continue;
       }
 
-      $slide = $paragraph->get('field_slide')->entity ?? null;
+      $slide = $paragraph->get('field_playlist_slide')->entity ?? null;
       if (!$slide instanceof NodeInterface || $slide->bundle() !== 'slide') {
         continue;
       }
@@ -114,11 +113,11 @@ class ScreenPlaybackResolver {
   }
 
   protected function isEnabled(ParagraphInterface $item): bool {
-    if (!$item->hasField('field_is_enabled') || $item->get('field_is_enabled')->isEmpty()) {
+    if (!$item->hasField('field_enabled') || $item->get('field_enabled')->isEmpty()) {
       return false;
     }
 
-    return (bool) $item->get('field_is_enabled')->value;
+    return (bool) $item->get('field_enabled')->value;
   }
 
   protected function isActiveNow(ParagraphInterface $item): bool {
@@ -165,20 +164,20 @@ class ScreenPlaybackResolver {
   }
 
   protected function getSlideBody(NodeInterface $slide): string {
-    if (!$slide->hasField('field_body') || $slide->get('field_body')->isEmpty()) {
+    if (!$slide->hasField('field_slide_body') || $slide->get('field_slide_body')->isEmpty()) {
       return '';
     }
 
-    $value = (string) $slide->get('field_body')->value;
+    $value = (string) $slide->get('field_slide_body')->value;
     return trim(html_entity_decode(strip_tags($value)));
   }
 
   protected function getSlideMediaUrl(NodeInterface $slide): ?string {
-    if (!$slide->hasField('field_media') || $slide->get('field_media')->isEmpty()) {
+    if (!$slide->hasField('field_slide_media') || $slide->get('field_slide_media')->isEmpty()) {
       return null;
     }
 
-    $media = $slide->get('field_media')->entity;
+    $media = $slide->get('field_slide_media')->entity;
     if (!$media instanceof MediaInterface || !$media->hasField('field_media_image') || $media->get('field_media_image')->isEmpty()) {
       return null;
     }
