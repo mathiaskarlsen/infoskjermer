@@ -1,0 +1,6 @@
+signage_screen.overview:
+  title: 'Screens'
+  description: 'Overview of registered screens.'
+  route_name: signage_screen.overview
+  parent: system.admin_content
+  weight: 20

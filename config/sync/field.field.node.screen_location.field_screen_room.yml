@@ -1,0 +1,21 @@
+uuid: acf85550-e7eb-4830-aebc-cfad83223235
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_screen_room
+    - node.type.screen_location
+  module:
+    - options
+id: node.screen_location.field_screen_room
+field_name: field_screen_room
+entity_type: node
+bundle: screen_location
+label: 'Screen room'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

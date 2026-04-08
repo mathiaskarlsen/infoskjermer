@@ -1,0 +1,7 @@
+name: 'Signage Screen'
+type: module
+description: Screen management helpers for the digital signage project.
+package: Custom
+core_version_requirement: ^11
+dependencies:
+  - drupal:node

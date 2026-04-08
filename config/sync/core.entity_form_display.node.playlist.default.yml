@@ -3,8 +3,8 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.playlist.field_description
-    - field.field.node.playlist.field_items
+    - field.field.node.playlist.field_playlist_description
+    - field.field.node.playlist.field_playlist_items
     - node.type.playlist
   module:
     - paragraphs
@@ -20,7 +20,7 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_description:
+  field_playlist_description:
     type: string_textfield
     weight: 122
     region: content
@@ -28,7 +28,7 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_items:
+  field_playlist_items:
     type: paragraphs
     weight: 121
     region: content

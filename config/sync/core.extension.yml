@@ -36,8 +36,10 @@ module:
   path_alias: 0
   search: 0
   shortcut: 0
-  signage: 0
   signage_dashboard: 0
+  signage_display: 0
+  signage_player: 0
+  signage_screen: 0
   system: 0
   taxonomy: 0
   text: 0

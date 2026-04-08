@@ -1,0 +1,30 @@
+uuid: 80b2501d-7c04-4cb6-9b62-2beeb97f31b0
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_screen_room
+field_name: field_screen_room
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: e1780
+      label: E1780
+    -
+      value: b1070
+      label: B1070
+    -
+      value: d1090
+      label: D1090
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

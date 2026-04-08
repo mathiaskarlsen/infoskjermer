@@ -4,9 +4,9 @@ status: true
 dependencies:
   config:
     - field.field.paragraph.playlist_item.field_duration_seconds
+    - field.field.paragraph.playlist_item.field_enabled
     - field.field.paragraph.playlist_item.field_end_at
-    - field.field.paragraph.playlist_item.field_is_enabled
-    - field.field.paragraph.playlist_item.field_slide
+    - field.field.paragraph.playlist_item.field_playlist_slide
     - field.field.paragraph.playlist_item.field_sort_order
     - field.field.paragraph.playlist_item.field_start_at
     - paragraphs.paragraphs_type.playlist_item
@@ -24,22 +24,22 @@ content:
     settings:
       placeholder: ''
     third_party_settings: {  }
+  field_enabled:
+    type: boolean_checkbox
+    weight: 8
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
   field_end_at:
     type: datetime_default
     weight: 3
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_is_enabled:
-    type: boolean_checkbox
-    weight: 6
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  field_slide:
+  field_playlist_slide:
     type: entity_reference_autocomplete
-    weight: 0
+    weight: 7
     region: content
     settings:
       match_operator: CONTAINS

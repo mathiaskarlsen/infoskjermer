@@ -3,9 +3,9 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.screen.field_location
-    - field.field.node.screen.field_playlist
-    - field.field.node.screen.field_status
+    - field.field.node.screen.field_screen_location
+    - field.field.node.screen.field_screen_playlist
+    - field.field.node.screen.field_screen_status
     - node.type.screen
   module:
     - path
@@ -16,13 +16,13 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 10
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_location:
+  field_screen_location:
     type: entity_reference_autocomplete
-    weight: 125
+    weight: 27
     region: content
     settings:
       match_operator: CONTAINS
@@ -30,9 +30,9 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_playlist:
+  field_screen_playlist:
     type: entity_reference_autocomplete
-    weight: 124
+    weight: 28
     region: content
     settings:
       match_operator: CONTAINS
@@ -40,29 +40,29 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_status:
+  field_screen_status:
     type: boolean_checkbox
-    weight: 122
+    weight: 26
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   path:
     type: path
-    weight: 30
+    weight: 7
     region: content
     settings: {  }
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 120
+    weight: 4
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   title:
     type: string_textfield
-    weight: -5
+    weight: 0
     region: content
     settings:
       size: 60

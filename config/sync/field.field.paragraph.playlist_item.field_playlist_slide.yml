@@ -1,0 +1,29 @@
+uuid: 1897a75a-1080-4176-a4db-1099883f24b7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_playlist_slide
+    - node.type.slide
+    - paragraphs.paragraphs_type.playlist_item
+id: paragraph.playlist_item.field_playlist_slide
+field_name: field_playlist_slide
+entity_type: paragraph
+bundle: playlist_item
+label: 'Playlist slide'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      slide: slide
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

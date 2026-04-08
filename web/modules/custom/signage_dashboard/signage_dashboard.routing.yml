@@ -1,4 +1,4 @@
-my_dashboard.page:
+signage_dashboard.page:
   path: '/dashboard'
   defaults:
     _controller: '\Drupal\signage_dashboard\Controller\DashboardController::build'

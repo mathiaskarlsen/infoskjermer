@@ -3,8 +3,8 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.slide.field_body
-    - field.field.node.slide.field_media
+    - field.field.node.slide.field_slide_body
+    - field.field.node.slide.field_slide_media
     - node.type.slide
   module:
     - media_library
@@ -21,17 +21,17 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_body:
+  field_slide_body:
     type: text_textarea
-    weight: 122
+    weight: 123
     region: content
     settings:
       rows: 5
       placeholder: ''
     third_party_settings: {  }
-  field_media:
+  field_slide_media:
     type: media_library_widget
-    weight: 121
+    weight: 124
     region: content
     settings:
       media_types: {  }

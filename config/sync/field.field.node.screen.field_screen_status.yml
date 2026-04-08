@@ -1,0 +1,23 @@
+uuid: dd06b20f-3479-4d6c-9838-c91e37554b7f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_screen_status
+    - node.type.screen
+id: node.screen.field_screen_status
+field_name: field_screen_status
+entity_type: node
+bundle: screen
+label: 'Screen status'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean
