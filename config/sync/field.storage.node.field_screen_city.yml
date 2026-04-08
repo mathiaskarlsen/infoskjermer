@@ -1,0 +1,33 @@
+uuid: 350db44a-fedf-4040-b498-f601859fcd31
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_screen_city
+field_name: field_screen_city
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: narvik
+      label: Narvik
+    -
+      value: tromso
+      label: Tromsø
+    -
+      value: alta
+      label: Alta
+    -
+      value: harstad
+      label: Harstad
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

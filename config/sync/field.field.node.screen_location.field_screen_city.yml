@@ -1,0 +1,21 @@
+uuid: 67f7d382-89fc-4947-bb9b-8649723c2962
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_screen_city
+    - node.type.screen_location
+  module:
+    - options
+id: node.screen_location.field_screen_city
+field_name: field_screen_city
+entity_type: node
+bundle: screen_location
+label: 'Screen City'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -1,0 +1,24 @@
+uuid: ef89801d-cf54-4f2b-9db1-eec2c323c95b
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_screen_building
+field_name: field_screen_building
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: uit_narvik
+      label: 'Campus Narvik'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

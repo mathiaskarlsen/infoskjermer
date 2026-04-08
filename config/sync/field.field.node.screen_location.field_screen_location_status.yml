@@ -1,0 +1,21 @@
+uuid: f5a23b46-5afc-4d61-8bae-00b7e5333715
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_screen_location_status
+    - node.type.screen_location
+  module:
+    - options
+id: node.screen_location.field_screen_location_status
+field_name: field_screen_location_status
+entity_type: node
+bundle: screen_location
+label: 'Screen location status'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

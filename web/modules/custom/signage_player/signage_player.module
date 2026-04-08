@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * @file
+ * Signage Player module hooks.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function signage_player_theme($existing, $type, $theme, $path): array {
+  return [
+    'signage_player_screen' => [
+      'variables' => [
+        'playback' => [],
+      ],
+      'template' => 'player-screen',
+    ],
+  ];
+}

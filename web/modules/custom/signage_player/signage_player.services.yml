@@ -1,0 +1,7 @@
+services:
+  signage_player.screen_playback_resolver:
+    class: Drupal\signage_player\Service\ScreenPlaybackResolver
+    arguments:
+      - '@entity_type.manager'
+      - '@datetime.time'
+      - '@file_url_generator'

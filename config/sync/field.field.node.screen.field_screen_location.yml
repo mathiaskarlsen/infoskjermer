@@ -1,0 +1,29 @@
+uuid: e9449717-3453-4f2e-b3d3-09fc96e6a944
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_screen_location
+    - node.type.screen
+    - node.type.screen_location
+id: node.screen.field_screen_location
+field_name: field_screen_location
+entity_type: node
+bundle: screen
+label: 'Screen location'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      screen_location: screen_location
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: location
+field_type: entity_reference

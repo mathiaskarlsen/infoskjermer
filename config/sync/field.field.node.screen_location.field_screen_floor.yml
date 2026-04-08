@@ -1,0 +1,21 @@
+uuid: 1e6ae91d-1390-4eb3-9f34-039e158e0290
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_screen_floor
+    - node.type.screen_location
+  module:
+    - options
+id: node.screen_location.field_screen_floor
+field_name: field_screen_floor
+entity_type: node
+bundle: screen_location
+label: 'Screen floor'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

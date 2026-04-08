@@ -1,0 +1,8 @@
+signage_player.screen:
+  path: '/player/{screen}'
+  defaults:
+    _controller: '\Drupal\signage_player\Controller\PlayerController::view'
+    _title: 'Player'
+  requirements:
+    _access: 'TRUE'
+    screen: '\d+'

@@ -1,0 +1,10 @@
+services:
+  logger.channel.signage_screen:
+    parent: logger.channel_base
+    arguments: ['signage_screen']
+
+  signage_screen.screen_manager:
+    class: Drupal\signage_screen\Service\ScreenManager
+    arguments:
+      - '@entity_type.manager'
+      - '@logger.channel.signage_screen'

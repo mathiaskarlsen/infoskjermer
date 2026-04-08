@@ -3,34 +3,34 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.screen.field_enabled_media
-    - field.field.node.screen.field_location
-    - field.field.node.screen.field_status
+    - field.field.node.screen.field_screen_location
+    - field.field.node.screen.field_screen_playlist
+    - field.field.node.screen.field_screen_status
     - node.type.screen
   module:
-    - options
     - user
 id: node.screen.default
 targetEntityType: node
 bundle: screen
 mode: default
 content:
-  field_enabled_media:
+  field_screen_location:
     type: entity_reference_label
     label: above
     settings:
       link: true
     third_party_settings: {  }
-    weight: 103
+    weight: 5
     region: content
-  field_location:
-    type: list_default
+  field_screen_playlist:
+    type: entity_reference_label
     label: above
-    settings: {  }
+    settings:
+      link: true
     third_party_settings: {  }
-    weight: 101
+    weight: 6
     region: content
-  field_status:
+  field_screen_status:
     type: boolean
     label: above
     settings:
@@ -38,11 +38,11 @@ content:
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    weight: 102
+    weight: 4
     region: content
   links:
     settings: {  }
     third_party_settings: {  }
-    weight: 100
+    weight: 0
     region: content
 hidden: {  }

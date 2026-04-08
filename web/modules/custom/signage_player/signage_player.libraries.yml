@@ -1,0 +1,7 @@
+player:
+  version: 1.x
+  js:
+    js/player.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

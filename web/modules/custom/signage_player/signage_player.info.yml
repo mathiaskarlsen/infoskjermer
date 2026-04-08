@@ -1,0 +1,8 @@
+name: 'Signage Player'
+type: module
+core_version_requirement: ^11
+package: Custom
+dependencies:
+  - node
+  - paragraphs
+  - media

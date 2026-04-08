@@ -1,0 +1,21 @@
+uuid: b9c749dc-b042-4902-9135-3db96d5e9820
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_screen_area
+    - node.type.screen_location
+  module:
+    - options
+id: node.screen_location.field_screen_area
+field_name: field_screen_area
+entity_type: node
+bundle: screen_location
+label: 'Screen area'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string
