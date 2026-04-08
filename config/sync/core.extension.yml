@@ -36,7 +36,6 @@ module:
   path_alias: 0
   search: 0
   shortcut: 0
-  signage: 0
   signage_dashboard: 0
   signage_display: 0
   signage_player: 0

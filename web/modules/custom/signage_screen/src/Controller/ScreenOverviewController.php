@@ -31,7 +31,7 @@ final class ScreenOverviewController extends ControllerBase {
     foreach ($screens as $screen) {
       $location = '-';
       if (!$screen->get('field_screen_location')->isEmpty() && $screen->get('field_screen_location')->entity) {
-        $location = $screen->get('field_location')->entity->label();
+        $location = $screen->get('field_screen_location')->entity->label();
       }
 
       $playlist = '-';
