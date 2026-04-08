@@ -1,17 +1,18 @@
-uuid: 8f77aeb2-1e30-4b9d-864c-f824d7126daf
+uuid: ec2b1c51-5893-4a23-b774-d2d0a0e0da28
 langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.screen.field_location
-    - field.field.node.screen.field_playlist
-    - field.field.node.screen.field_status
-    - node.type.screen
+    - field.field.node.slide.field_body
+    - field.field.node.slide.field_media
+    - node.type.slide
   module:
+    - media_library
     - path
-id: node.screen.default
+    - text
+id: node.slide.default
 targetEntityType: node
-bundle: screen
+bundle: slide
 mode: default
 content:
   created:
@@ -20,32 +21,20 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_location:
-    type: entity_reference_autocomplete
-    weight: 125
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_playlist:
-    type: entity_reference_autocomplete
-    weight: 124
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_status:
-    type: boolean_checkbox
+  field_body:
+    type: text_textarea
     weight: 122
     region: content
     settings:
-      display_label: true
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_media:
+    type: media_library_widget
+    weight: 121
+    region: content
+    settings:
+      media_types: {  }
     third_party_settings: {  }
   path:
     type: path

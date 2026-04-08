@@ -1,0 +1,42 @@
+uuid: 9494b869-769d-4855-931a-be8603c9fb83
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_floor
+field_name: field_floor
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: '7'
+      label: '7'
+    -
+      value: '6'
+      label: '6'
+    -
+      value: '5'
+      label: '5'
+    -
+      value: '4'
+      label: '4'
+    -
+      value: '2'
+      label: '2'
+    -
+      value: '1'
+      label: '1'
+    -
+      value: b1
+      label: b1
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

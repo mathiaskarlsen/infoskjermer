@@ -1,0 +1,25 @@
+uuid: 2727b485-22e0-4c01-9eb9-1dac2aae29f3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_sort_order
+    - paragraphs.paragraphs_type.playlist_item
+id: paragraph.playlist_item.field_sort_order
+field_name: field_sort_order
+entity_type: paragraph
+bundle: playlist_item
+label: 'Sort order'
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  min: 1
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

@@ -1,15 +1,14 @@
-uuid: e439c195-bb18-485c-9b9d-f386c521c7a8
+uuid: c230099c-63bd-4a4e-aeac-b758c614ddd0
 langcode: en
 status: true
 dependencies:
   module:
-    - node
-id: node.field_location
-field_name: field_location
-entity_type: node
-type: entity_reference
-settings:
-  target_type: node
+    - paragraphs
+id: paragraph.field_is_enabled
+field_name: field_is_enabled
+entity_type: paragraph
+type: boolean
+settings: {  }
 module: core
 locked: false
 cardinality: 1

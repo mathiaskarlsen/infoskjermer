@@ -1,12 +1,13 @@
-uuid: c15ab95f-3bc7-4e1f-b5e1-fdf2f755629e
+uuid: 57743c39-51cd-4b82-a086-8aadd43bd444
 langcode: en
 status: true
 dependencies:
   module:
     - node
-id: node.field_enabled_media
-field_name: field_enabled_media
-entity_type: node
+    - paragraphs
+id: paragraph.field_slide
+field_name: field_slide
+entity_type: paragraph
 type: entity_reference
 settings:
   target_type: node

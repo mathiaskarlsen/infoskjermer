@@ -1,0 +1,10 @@
+uuid: 72eda1d4-df4f-494e-be45-a70a8fcf75a9
+langcode: en
+status: true
+dependencies: {  }
+id: playlist_item
+label: 'Playlist item'
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }

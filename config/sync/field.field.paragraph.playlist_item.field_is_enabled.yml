@@ -1,0 +1,23 @@
+uuid: 6ab1004d-52b7-4175-8c2c-2261855b3c4e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_is_enabled
+    - paragraphs.paragraphs_type.playlist_item
+id: paragraph.playlist_item.field_is_enabled
+field_name: field_is_enabled
+entity_type: paragraph
+bundle: playlist_item
+label: 'Is enabled'
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

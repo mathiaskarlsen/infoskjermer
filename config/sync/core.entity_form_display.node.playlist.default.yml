@@ -1,17 +1,17 @@
-uuid: 8f77aeb2-1e30-4b9d-864c-f824d7126daf
+uuid: 54805ae2-026f-4e0d-ace7-370bbb9fb084
 langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.screen.field_location
-    - field.field.node.screen.field_playlist
-    - field.field.node.screen.field_status
-    - node.type.screen
+    - field.field.node.playlist.field_description
+    - field.field.node.playlist.field_items
+    - node.type.playlist
   module:
+    - paragraphs
     - path
-id: node.screen.default
+id: node.playlist.default
 targetEntityType: node
-bundle: screen
+bundle: playlist
 mode: default
 content:
   created:
@@ -20,32 +20,31 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_location:
-    type: entity_reference_autocomplete
-    weight: 125
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_playlist:
-    type: entity_reference_autocomplete
-    weight: 124
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_status:
-    type: boolean_checkbox
+  field_description:
+    type: string_textfield
     weight: 122
     region: content
     settings:
-      display_label: true
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_items:
+    type: paragraphs
+    weight: 121
+    region: content
+    settings:
+      title: Paragraph
+      title_plural: Paragraphs
+      edit_mode: open
+      closed_mode: summary
+      autocollapse: none
+      closed_mode_threshold: 0
+      add_mode: dropdown
+      form_display_mode: default
+      default_paragraph_type: ''
+      features:
+        collapse_edit_all: collapse_edit_all
+        duplicate: duplicate
     third_party_settings: {  }
   path:
     type: path

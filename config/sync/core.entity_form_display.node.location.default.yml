@@ -1,17 +1,20 @@
-uuid: 8f77aeb2-1e30-4b9d-864c-f824d7126daf
+uuid: 5109e411-664a-497b-a83f-8a7db14582d8
 langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.screen.field_location
-    - field.field.node.screen.field_playlist
-    - field.field.node.screen.field_status
-    - node.type.screen
+    - field.field.node.location.field_building
+    - field.field.node.location.field_city
+    - field.field.node.location.field_floor
+    - field.field.node.location.field_location_status
+    - field.field.node.location.field_room
+    - field.field.node.location.field_room_or_area
+    - node.type.location
   module:
     - path
-id: node.screen.default
+id: node.location.default
 targetEntityType: node
-bundle: screen
+bundle: location
 mode: default
 content:
   created:
@@ -20,32 +23,41 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_location:
-    type: entity_reference_autocomplete
-    weight: 125
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_playlist:
-    type: entity_reference_autocomplete
-    weight: 124
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_status:
-    type: boolean_checkbox
+  field_building:
+    type: options_select
     weight: 122
     region: content
-    settings:
-      display_label: true
+    settings: {  }
+    third_party_settings: {  }
+  field_city:
+    type: options_select
+    weight: 121
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_floor:
+    type: options_select
+    weight: 123
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_location_status:
+    type: options_select
+    weight: 126
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_room:
+    type: options_select
+    weight: 125
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_room_or_area:
+    type: options_select
+    weight: 124
+    region: content
+    settings: {  }
     third_party_settings: {  }
   path:
     type: path

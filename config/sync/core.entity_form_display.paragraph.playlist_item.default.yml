@@ -1,0 +1,65 @@
+uuid: d834bef2-73b9-437c-9c92-9e482b79856f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.playlist_item.field_duration_seconds
+    - field.field.paragraph.playlist_item.field_end_at
+    - field.field.paragraph.playlist_item.field_is_enabled
+    - field.field.paragraph.playlist_item.field_slide
+    - field.field.paragraph.playlist_item.field_sort_order
+    - field.field.paragraph.playlist_item.field_start_at
+    - paragraphs.paragraphs_type.playlist_item
+  module:
+    - datetime
+id: paragraph.playlist_item.default
+targetEntityType: paragraph
+bundle: playlist_item
+mode: default
+content:
+  field_duration_seconds:
+    type: number
+    weight: 4
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_end_at:
+    type: datetime_default
+    weight: 3
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_is_enabled:
+    type: boolean_checkbox
+    weight: 6
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  field_slide:
+    type: entity_reference_autocomplete
+    weight: 0
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_sort_order:
+    type: number
+    weight: 1
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_start_at:
+    type: datetime_default
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  created: true
+  status: true

@@ -1,0 +1,21 @@
+uuid: 7a7453fd-689c-4c55-b17d-0cf3b967d51c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_start_at
+    - paragraphs.paragraphs_type.playlist_item
+  module:
+    - datetime
+id: paragraph.playlist_item.field_start_at
+field_name: field_start_at
+entity_type: paragraph
+bundle: playlist_item
+label: 'Start at'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

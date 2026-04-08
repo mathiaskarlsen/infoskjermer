@@ -1,0 +1,25 @@
+uuid: fe77557e-6132-477b-b91c-41b6b96d84e4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_duration_seconds
+    - paragraphs.paragraphs_type.playlist_item
+id: paragraph.playlist_item.field_duration_seconds
+field_name: field_duration_seconds
+entity_type: paragraph
+bundle: playlist_item
+label: 'Duration (seconds)'
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    value: 10
+default_value_callback: ''
+settings:
+  min: 1
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

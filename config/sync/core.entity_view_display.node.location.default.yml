@@ -1,0 +1,68 @@
+uuid: 7e3f944c-8745-4633-ba37-05d920077b42
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.location.field_building
+    - field.field.node.location.field_city
+    - field.field.node.location.field_floor
+    - field.field.node.location.field_location_status
+    - field.field.node.location.field_room
+    - field.field.node.location.field_room_or_area
+    - node.type.location
+  module:
+    - options
+    - user
+id: node.location.default
+targetEntityType: node
+bundle: location
+mode: default
+content:
+  field_building:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 102
+    region: content
+  field_city:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  field_floor:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 103
+    region: content
+  field_location_status:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 106
+    region: content
+  field_room:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 105
+    region: content
+  field_room_or_area:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 104
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden: {  }

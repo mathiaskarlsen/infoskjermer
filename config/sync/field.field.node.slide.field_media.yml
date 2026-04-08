@@ -1,18 +1,18 @@
-uuid: 42e1a588-6ca0-41f7-844e-4ed4b74fe403
+uuid: 7ee5fdd3-f571-44f2-80b8-18d3fd7b882a
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.node.field_media
     - media.type.image
-    - node.type.screen_content
-id: node.screen_content.field_media
+    - node.type.slide
+id: node.slide.field_media
 field_name: field_media
 entity_type: node
-bundle: screen_content
-label: Image
+bundle: slide
+label: Media
 description: ''
-required: false
+required: true
 translatable: false
 default_value: {  }
 default_value_callback: ''
