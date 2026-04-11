@@ -26,7 +26,6 @@ final class DashboardController extends ControllerBase {
   public function build(): array {
     $account = $this->currentUser();
     $screens = $this->loadMyScreens();
-    $active_media = $this->collectActiveMedia($screens);
 
     return [
       '#type' => 'container',
@@ -77,29 +76,11 @@ final class DashboardController extends ControllerBase {
         ],
         'content' => $this->buildMyScreensSection($screens),
       ],
-
-      'media_section' => [
-        '#type' => 'container',
-        '#attributes' => [
-          'class' => ['dashboard-panel'],
-        ],
-        'title' => [
-          '#type' => 'html_tag',
-          '#tag' => 'h3',
-          '#value' => (string) $this->t('Aktive medier (@count)', [
-            '@count' => count($active_media),
-          ]),
-        ],
-        'content' => $this->buildActiveMediaSection($active_media),
-      ],
     ];
   }
 
   /**
-   * Loads screens authored by the current user.
-   *
    * @return \Drupal\node\NodeInterface[]
-   *   Screen nodes.
    */
   private function loadMyScreens(): array {
     $storage = $this->entityTypeManager()->getStorage('node');
@@ -123,45 +104,44 @@ final class DashboardController extends ControllerBase {
     ));
   }
 
-  private function collectActiveMedia(array $screens): array {
+  private function collectActiveMediaForScreen(NodeInterface $screen): array {
     $items = [];
     $seen = [];
 
-    foreach ($screens as $screen) {
-      $resolved = $this->screenPlaybackResolver->resolve((int) $screen->id());
+    $resolved = $this->screenPlaybackResolver->resolve((int) $screen->id());
 
-      foreach ($resolved['items'] as $item) {
-        $key = $screen->id() . ':' . $item['slide_id'];
+    foreach ($resolved['items'] as $item) {
+      $key = $screen->id() . ':' . $item['slide_id'];
 
-        if (isset($seen[$key])) {
-          continue;
-        }
-        $seen[$key] = TRUE;
-
-        $items[] = [
-          'screen_id' => (int) $screen->id(),
-          'screen_title' => $screen->label(),
-          'slide_id' => (int) $item['slide_id'],
-          'slide_title' => (string) $item['title'],
-          'body' => !empty($item['body']) ? Unicode::truncate((string) $item['body'], 140, TRUE, TRUE) : '',
-          'duration' => (int) $item['duration'],
-          'media_url' => $item['media_url'] ?? NULL,
-          'start_at' => $item['start_at'] ?? NULL,
-          'end_at' => $item['end_at'] ?? NULL,
-          'period_label' => $this->formatPeriod(
-            $item['start_at'] ?? NULL,
-            $item['end_at'] ?? NULL
-          ),
-        ];
+      if (isset($seen[$key])) {
+        continue;
       }
+      $seen[$key] = TRUE;
+
+      $items[] = [
+        'screen_id' => (int) $screen->id(),
+        'screen_title' => $screen->label(),
+        'slide_id' => (int) $item['slide_id'],
+        'slide_title' => (string) $item['title'],
+        'body' => !empty($item['body']) ? Unicode::truncate((string) $item['body'], 140, TRUE, TRUE) : '',
+        'duration' => (int) $item['duration'],
+        'order' => (int) ($item['order'] ?? 9999),
+        'media_url' => $item['media_url'] ?? NULL,
+        'start_at' => $item['start_at'] ?? NULL,
+        'end_at' => $item['end_at'] ?? NULL,
+        'period_label' => $this->formatPeriod(
+          $item['start_at'] ?? NULL,
+          $item['end_at'] ?? NULL
+        ),
+      ];
     }
 
     usort($items, function (array $a, array $b): int {
-      $screen_compare = strcasecmp($a['screen_title'], $b['screen_title']);
-      if ($screen_compare !== 0) {
-        return $screen_compare;
+      $order_compare = $a['order'] <=> $b['order'];
+      if ($order_compare !== 0) {
+        return $order_compare;
       }
-
+    
       return strcasecmp($a['slide_title'], $b['slide_title']);
     });
 
@@ -199,85 +179,106 @@ final class DashboardController extends ControllerBase {
         $playlist_entity = $screen->get('field_screen_playlist')->entity;
       }
 
+      $active_media = $this->collectActiveMediaForScreen($screen);
+
       $build['item_' . $index] = [
         '#type' => 'container',
         '#attributes' => [
           'class' => ['dashboard-screen-item'],
         ],
 
-        'main' => [
+        'header' => [
           '#type' => 'container',
           '#attributes' => [
-            'class' => ['dashboard-screen-item__main'],
+            'class' => ['dashboard-screen-item__header'],
           ],
-          'title' => [
-            '#type' => 'link',
-            '#title' => $screen->label(),
-            '#url' => Url::fromRoute('entity.node.edit_form', ['node' => $screen->id()]),
-            '#options' => [
-              'attributes' => [
-                'class' => ['dashboard-screen-item__title'],
-              ],
-            ],
-          ],
-          'meta' => [
+
+          'main' => [
             '#type' => 'container',
             '#attributes' => [
-              'class' => ['dashboard-screen-meta'],
+              'class' => ['dashboard-screen-item__main'],
             ],
-            'location' => $this->buildMetaItem($this->t('Location:'), $location),
-            'playlist' => [
-              '#type' => 'container',
-              '#attributes' => [
-                'class' => ['dashboard-meta-item'],
-              ],
-              'label' => [
-                '#type' => 'html_tag',
-                '#tag' => 'span',
-                '#value' => (string) $this->t('Playlist:'),
-                '#attributes' => [
-                  'class' => ['dashboard-meta-label'],
+            'title' => [
+              '#type' => 'link',
+              '#title' => $screen->label(),
+              '#url' => Url::fromRoute('entity.node.edit_form', ['node' => $screen->id()]),
+              '#options' => [
+                'attributes' => [
+                  'class' => ['dashboard-screen-item__title'],
                 ],
               ],
-              'value' => $playlist_entity
-                ? [
-                    '#type' => 'link',
-                    '#title' => $playlist_entity->label(),
-                    '#url' => Url::fromRoute('entity.node.edit_form', ['node' => $playlist_entity->id()]),
-                    '#options' => [
-                      'attributes' => [
-                        'class' => ['dashboard-meta-value', 'dashboard-meta-link'],
+            ],
+            'meta' => [
+              '#type' => 'container',
+              '#attributes' => [
+                'class' => ['dashboard-screen-meta'],
+              ],
+              'location' => $this->buildMetaItem($this->t('Location:'), $location),
+              'playlist' => [
+                '#type' => 'container',
+                '#attributes' => [
+                  'class' => ['dashboard-meta-item'],
+                ],
+                'label' => [
+                  '#type' => 'html_tag',
+                  '#tag' => 'span',
+                  '#value' => (string) $this->t('Playlist:'),
+                  '#attributes' => [
+                    'class' => ['dashboard-meta-label'],
+                  ],
+                ],
+                'value' => $playlist_entity
+                  ? [
+                      '#type' => 'link',
+                      '#title' => $playlist_entity->label(),
+                      '#url' => Url::fromRoute('entity.node.edit_form', ['node' => $playlist_entity->id()]),
+                      '#options' => [
+                        'attributes' => [
+                          'class' => ['dashboard-meta-value', 'dashboard-meta-link'],
+                        ],
+                      ],
+                    ]
+                  : [
+                      '#type' => 'html_tag',
+                      '#tag' => 'span',
+                      '#value' => '-',
+                      '#attributes' => [
+                        'class' => ['dashboard-meta-value'],
                       ],
                     ],
-                  ]
-                : [
-                    '#type' => 'html_tag',
-                    '#tag' => 'span',
-                    '#value' => '-',
-                    '#attributes' => [
-                      'class' => ['dashboard-meta-value'],
-                    ],
-                  ],
+              ],
+            ],
+          ],
+
+          'side' => [
+            '#type' => 'container',
+            '#attributes' => [
+              'class' => ['dashboard-screen-item__side'],
+            ],
+            'status' => $this->buildStatusBadge($screen->isPublished()),
+            'player' => [
+              '#type' => 'link',
+              '#title' => $this->t('Open player'),
+              '#url' => Url::fromUri('internal:/player/' . $screen->id()),
+              '#options' => [
+                'attributes' => [
+                  'class' => ['dashboard-action-link'],
+                ],
+              ],
             ],
           ],
         ],
 
-        'side' => [
-          '#type' => 'container',
+        'media' => [
+          '#type' => 'details',
+          '#title' => $this->t('Aktive medier (@count)', [
+            '@count' => count($active_media),
+          ]),
+          '#open' => FALSE,
           '#attributes' => [
-            'class' => ['dashboard-screen-item__side'],
+            'class' => ['dashboard-screen-media', 'dashboard-screen-media--collapsible'],
           ],
-          'status' => $this->buildStatusBadge($screen->isPublished()),
-          'player' => [
-            '#type' => 'link',
-            '#title' => $this->t('Open player'),
-            '#url' => Url::fromUri('internal:/player/' . $screen->id()),
-            '#options' => [
-              'attributes' => [
-                'class' => ['dashboard-action-link'],
-              ],
-            ],
-          ],
+          'content' => $this->buildScreenMediaSection($active_media),
         ],
       ];
     }
@@ -285,20 +286,27 @@ final class DashboardController extends ControllerBase {
     return $build;
   }
 
-  private function buildActiveMediaSection(array $items): array {
+  private function buildScreenMediaSection(array $items): array {
     if (!$items) {
-      return $this->buildEmptyMessage($this->t('Ingen aktive medier akkurat nå.'));
+      return [
+        '#type' => 'html_tag',
+        '#tag' => 'p',
+        '#value' => (string) $this->t('Ingen aktive medier akkurat nå.'),
+        '#attributes' => [
+          'class' => ['dashboard-empty', 'dashboard-empty--compact'],
+        ],
+      ];
     }
 
     $build = [
       '#type' => 'container',
       '#attributes' => [
-        'class' => ['dashboard-media-grid'],
+        'class' => ['dashboard-media-grid', 'dashboard-media-grid--nested'],
       ],
     ];
 
     foreach ($items as $index => $item) {
-      $card = [
+      $build['item_' . $index] = [
         '#type' => 'container',
         '#attributes' => [
           'class' => ['dashboard-media-card'],
@@ -308,14 +316,6 @@ final class DashboardController extends ControllerBase {
           '#type' => 'container',
           '#attributes' => [
             'class' => ['dashboard-media-card__content'],
-          ],
-          'screen' => [
-            '#type' => 'html_tag',
-            '#tag' => 'div',
-            '#value' => $item['screen_title'],
-            '#attributes' => [
-              'class' => ['dashboard-media-card__screen'],
-            ],
           ],
           'title' => [
             '#type' => 'link',
@@ -367,8 +367,6 @@ final class DashboardController extends ControllerBase {
           ],
         ],
       ];
-
-      $build['item_' . $index] = $card;
     }
 
     return $build;
