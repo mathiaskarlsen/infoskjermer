@@ -18,3 +18,207 @@ function signage_player_theme($existing, $type, $theme, $path): array {
     ],
   ];
 }
+
+/**
+ * Implements hook_field_widget_single_element_form_alter().
+ */
+function signage_player_field_widget_single_element_form_alter(array &$element, \Drupal\Core\Form\FormStateInterface $form_state, array $context): void {
+  $items = $context['items'] ?? null;
+
+  if (!$items instanceof \Drupal\Core\Field\FieldItemListInterface) {
+    return;
+  }
+
+  $entity = $items->getEntity();
+  if (!$entity instanceof \Drupal\paragraphs\ParagraphInterface || $entity->bundle() !== 'playlist_item') {
+    return;
+  }
+
+  $field_name = $items->getFieldDefinition()->getName();
+  if (!in_array($field_name, ['field_start_at', 'field_end_at'], true)) {
+    return;
+  }
+
+  if (!isset($element['value']) || !is_array($element['value'])) {
+    return;
+  }
+
+  $default_time = $field_name === 'field_start_at' ? '00:00:00' : '23:59:59';
+  $element['value']['#signage_player_default_time'] = $default_time;
+  $element['value']['#value_callback'] = 'signage_player_datetime_value_callback';
+}
+
+/**
+ * Custom value callback for datetime widgets.
+ *
+ * Ensures a default time is supplied before Drupal core turns submitted input
+ * into a DrupalDateTime object.
+ */
+function signage_player_datetime_value_callback(&$element, $input, \Drupal\Core\Form\FormStateInterface $form_state) {
+  if ($input !== false && is_array($input)) {
+    $date = $input['date'] ?? null;
+    $time = $input['time'] ?? null;
+
+    if (is_string($date) && trim($date) !== '') {
+      if (!is_string($time) || trim($time) === '' || str_contains($time, '--')) {
+        $input['time'] = $element['#signage_player_default_time'] ?? '00:00:00';
+      }
+    }
+  }
+
+  return \Drupal\Core\Datetime\Element\Datetime::valueCallback($element, $input, $form_state);
+}
+
+/**
+ * Implements hook_form_node_form_alter().
+ */
+function signage_player_form_node_form_alter(array &$form, \Drupal\Core\Form\FormStateInterface $form_state, string $form_id): void {
+  $entity = $form_state->getFormObject()->getEntity();
+
+  if (!$entity instanceof \Drupal\node\NodeInterface || $entity->bundle() !== 'playlist') {
+    return;
+  }
+
+  $form['#validate'][] = 'signage_player_validate_playlist_schedule';
+}
+
+/**
+ * Validate scheduling for playlist items.
+ */
+function signage_player_validate_playlist_schedule(array &$form, \Drupal\Core\Form\FormStateInterface $form_state): void {
+  $entity = $form_state->getFormObject()->getEntity();
+
+  if (!$entity instanceof \Drupal\node\NodeInterface || $entity->bundle() !== 'playlist') {
+    return;
+  }
+
+  if (!$entity->hasField('field_playlist_items') || $entity->get('field_playlist_items')->isEmpty()) {
+    return;
+  }
+
+  foreach ($entity->get('field_playlist_items')->referencedEntities() as $delta => $paragraph) {
+    if (!$paragraph instanceof \Drupal\paragraphs\ParagraphInterface || $paragraph->bundle() !== 'playlist_item') {
+      continue;
+    }
+
+    $start = signage_player_datetime_field_to_timestamp($paragraph, 'field_start_at', '00:00:00');
+    $end = signage_player_datetime_field_to_timestamp($paragraph, 'field_end_at', '23:59:59');
+
+    if ($start !== null && $end !== null && $end < $start) {
+      $end_element = $form['field_playlist_items']['widget'][$delta]['subform']['field_end_at']['widget'][0]['value'] ?? null;
+
+      if (is_array($end_element)) {
+        $form_state->setError(
+          $end_element,
+          t('End time must be later than start time.')
+        );
+      }
+      else {
+        $form_state->setErrorByName(
+          'field_playlist_items',
+          t('Playlist item @item has an end time earlier than its start time.', [
+            '@item' => $delta + 1,
+          ])
+        );
+      }
+    }
+
+    if ($paragraph->hasField('field_duration_seconds') && !$paragraph->get('field_duration_seconds')->isEmpty()) {
+      $duration = (int) $paragraph->get('field_duration_seconds')->value;
+
+      if ($duration < 1) {
+        $duration_element = $form['field_playlist_items']['widget'][$delta]['subform']['field_duration_seconds']['widget'][0]['value'] ?? null;
+
+        if (is_array($duration_element)) {
+          $form_state->setError(
+            $duration_element,
+            t('Duration must be at least 1 second.')
+          );
+        }
+        else {
+          $form_state->setErrorByName(
+            'field_playlist_items',
+            t('Playlist item @item must have a duration of at least 1 second.', [
+              '@item' => $delta + 1,
+            ])
+          );
+        }
+      }
+    }
+
+    if ($paragraph->hasField('field_sort_order') && !$paragraph->get('field_sort_order')->isEmpty()) {
+      $sort_order = (int) $paragraph->get('field_sort_order')->value;
+
+      if ($sort_order < 1) {
+        $sort_element = $form['field_playlist_items']['widget'][$delta]['subform']['field_sort_order']['widget'][0]['value'] ?? null;
+
+        if (is_array($sort_element)) {
+          $form_state->setError(
+            $sort_element,
+            t('Sort order must be at least 1.')
+          );
+        }
+        else {
+          $form_state->setErrorByName(
+            'field_playlist_items',
+            t('Playlist item @item must have a sort order of at least 1.', [
+              '@item' => $delta + 1,
+            ])
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Convert a paragraph datetime field to timestamp.
+ */
+function signage_player_datetime_field_to_timestamp(\Drupal\paragraphs\ParagraphInterface $paragraph, string $field_name, ?string $default_time = null): ?int {
+  if (!$paragraph->hasField($field_name) || $paragraph->get($field_name)->isEmpty()) {
+    return null;
+  }
+
+  $item = $paragraph->get($field_name)->first();
+  if (!$item) {
+    return null;
+  }
+
+  $raw = $item->getValue();
+  $value = $raw['value'] ?? null;
+
+  if (is_array($value)) {
+    $date = $value['date'] ?? null;
+    $time = $value['time'] ?? null;
+
+    if (!is_string($date) || trim($date) === '') {
+      return null;
+    }
+
+    if (!is_string($time) || trim($time) === '' || str_contains($time, '--')) {
+      if ($default_time === null) {
+        return null;
+      }
+
+      $time = $default_time;
+    }
+
+    if (strlen($time) === 5) {
+      $time .= ':00';
+    }
+
+    $value = $date . 'T' . $time;
+  }
+
+  if (!is_string($value) || trim($value) === '') {
+    return null;
+  }
+
+  try {
+    $date = new \Drupal\Core\Datetime\DrupalDateTime($value, new \DateTimeZone('UTC'));
+    return $date->getTimestamp();
+  }
+  catch (\Throwable $e) {
+    return null;
+  }
+}

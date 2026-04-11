@@ -26,6 +26,10 @@ class ScreenPlaybackResolver {
         'screen_found' => false,
         'playlist_found' => false,
         'items_found' => 0,
+        'total_items' => 0,
+        'enabled_items' => 0,
+        'time_window_items' => 0,
+        'valid_slide_items' => 0,
         'fallback_reason' => null,
       ],
       'items' => [],
@@ -76,20 +80,28 @@ class ScreenPlaybackResolver {
       if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'playlist_item') {
         continue;
       }
-
+    
+      $result['status']['total_items']++;
+    
       if (!$this->isEnabled($paragraph)) {
         continue;
       }
-
+    
+      $result['status']['enabled_items']++;
+    
       if (!$this->isActiveNow($paragraph)) {
         continue;
       }
-
+    
+      $result['status']['time_window_items']++;
+    
       $slide = $paragraph->get('field_playlist_slide')->entity ?? null;
       if (!$slide instanceof NodeInterface || $slide->bundle() !== 'slide') {
         continue;
       }
-
+    
+      $result['status']['valid_slide_items']++;
+    
       $items[] = [
         'slide_id' => (int) $slide->id(),
         'title' => $slide->label(),
@@ -106,7 +118,21 @@ class ScreenPlaybackResolver {
     $result['status']['items_found'] = count($items);
 
     if (!$items) {
-      $result['status']['fallback_reason'] = 'no_active_items';
+      if ($result['status']['total_items'] === 0) {
+        $result['status']['fallback_reason'] = 'playlist_empty';
+      }
+      elseif ($result['status']['enabled_items'] === 0) {
+        $result['status']['fallback_reason'] = 'all_items_disabled';
+      }
+      elseif ($result['status']['time_window_items'] === 0) {
+        $result['status']['fallback_reason'] = 'all_items_outside_schedule';
+      }
+      elseif ($result['status']['valid_slide_items'] === 0) {
+        $result['status']['fallback_reason'] = 'no_valid_slides';
+      }
+      else {
+        $result['status']['fallback_reason'] = 'no_active_items';
+      }
     }
 
     return $result;
