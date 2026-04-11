@@ -225,7 +225,7 @@ final class DashboardController extends ControllerBase {
             '#attributes' => [
               'class' => ['dashboard-screen-meta'],
             ],
-            'location' => $this->buildMetaItem($this->t('Location'), $location),
+            'location' => $this->buildMetaItem($this->t('Location:'), $location),
             'playlist' => [
               '#type' => 'container',
               '#attributes' => [
@@ -234,7 +234,7 @@ final class DashboardController extends ControllerBase {
               'label' => [
                 '#type' => 'html_tag',
                 '#tag' => 'span',
-                '#value' => (string) $this->t('Playlist'),
+                '#value' => (string) $this->t('Playlist:'),
                 '#attributes' => [
                   'class' => ['dashboard-meta-label'],
                 ],
