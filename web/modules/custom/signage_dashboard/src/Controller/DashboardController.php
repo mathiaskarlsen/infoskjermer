@@ -10,22 +10,26 @@ use Drupal\Core\Url;
 use Drupal\node\NodeInterface;
 use Drupal\signage_player\Service\ScreenPlaybackResolver;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\signage_share\Service\ShareManager;
 
 final class DashboardController extends ControllerBase {
 
   public function __construct(
     private readonly ScreenPlaybackResolver $screenPlaybackResolver,
+    private readonly ShareManager $shareManager,
   ) {}
 
   public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('signage_player.screen_playback_resolver'),
+      $container->get('signage_share.manager'),
     );
   }
 
   public function build(): array {
     $account = $this->currentUser();
     $screens = $this->loadMyScreens();
+    $shares = $this->shareManager->loadReceivedShares((int) $account->id(), ['new', 'seen']);
 
     return [
       '#type' => 'container',
@@ -67,6 +71,20 @@ final class DashboardController extends ControllerBase {
         '#attributes' => [
           'class' => ['dashboard-panel'],
         ],
+        'shared_messages_section' => [
+        '#type' => 'container',
+        '#attributes' => [
+        'class' => ['dashboard-panel'],
+        ],
+        'title' => [
+                  '#type' => 'html_tag',
+                  '#tag' => 'h3',
+                  '#value' => (string) $this->t('Nye fellesmeldinger (@count)', [
+                    '@count' => count($shares),
+                    ]),
+                    ],
+                    'content' => $this->buildSharedMessagesSection($shares),
+                    ],
         'title' => [
           '#type' => 'html_tag',
           '#tag' => 'h3',
@@ -482,5 +500,87 @@ final class DashboardController extends ControllerBase {
 
     return \Drupal::service('date.formatter')->format($timestamp, 'custom', 'd.m H:i');
   }
+  private function buildSharedMessagesSection(array $shares): array {
+  if (!$shares) {
+    return $this->buildEmptyMessage($this->t('Ingen nye fellesmeldinger.'));
+  }
 
+  $nodeStorage = $this->entityTypeManager()->getStorage('node');
+  $userStorage = $this->entityTypeManager()->getStorage('user');
+
+  $build = [
+    '#type' => 'container',
+    '#attributes' => [
+      'class' => ['dashboard-share-list'],
+    ],
+  ];
+
+  foreach ($shares as $index => $share) {
+    $slide = $nodeStorage->load((int) $share->slide_id);
+    $sender = $userStorage->load((int) $share->sender_uid);
+
+    $slideTitle = $slide ? $slide->label() : (string) $this->t('Ukjent slide');
+    $senderName = $sender ? $sender->getDisplayName() : (string) $this->t('Ukjent bruker');
+
+    $build['item_' . $index] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['dashboard-share-card'],
+      ],
+      'title' => [
+        '#type' => 'html_tag',
+        '#tag' => 'h4',
+        '#value' => $slideTitle,
+        '#attributes' => [
+          'class' => ['dashboard-share-card__title'],
+        ],
+      ],
+      'meta' => [
+        '#type' => 'html_tag',
+        '#tag' => 'p',
+        '#value' => (string) $this->t('Delt av @sender', ['@sender' => $senderName]),
+        '#attributes' => [
+          'class' => ['dashboard-share-card__meta'],
+        ],
+      ],
+      'message' => [
+        '#type' => 'html_tag',
+        '#tag' => 'p',
+        '#value' => $share->message ?: (string) $this->t('Ingen beskjed.'),
+        '#attributes' => [
+          'class' => ['dashboard-share-card__message'],
+        ],
+      ],
+      'actions' => [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['dashboard-share-card__actions'],
+        ],
+        'copy' => [
+          '#type' => 'link',
+          '#title' => $this->t('Kopier til mine slides'),
+          '#url' => Url::fromRoute('signage_share.copy', ['share' => $share->id]),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+        'archive' => [
+          '#type' => 'link',
+          '#title' => $this->t('Arkiver'),
+          '#url' => Url::fromRoute('signage_share.archive', ['share' => $share->id]),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+      ],
+    ];
+  }
+
+  return $build;
+  }
+  
 }

@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function signage_share_schema(): array {
+  $schema['signage_share'] = [
+    'description' => 'Stores shared slides between users.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'slide_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'sender_uid' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'recipient_uid' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'message' => [
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => FALSE,
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'status' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'new',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'recipient_uid' => ['recipient_uid'],
+      'slide_id' => ['slide_id'],
+      'status' => ['status'],
+    ],
+  ];
+
+  return $schema;
+}
