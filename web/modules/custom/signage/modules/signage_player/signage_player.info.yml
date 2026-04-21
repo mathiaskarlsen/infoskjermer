@@ -1,8 +1,9 @@
 name: 'Signage Player'
 type: module
 core_version_requirement: ^11
-package: Custom
+package: Signage2
 dependencies:
+  - signage
   - node
   - paragraphs
   - media

@@ -1,0 +1,5 @@
+name: 'Signage'
+type: module
+description: 'Signage'
+package: Signage2
+core_version_requirement: ^10 || ^11

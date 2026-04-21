@@ -16,7 +16,18 @@ function signage_player_theme($existing, $type, $theme, $path): array {
       ],
       'template' => 'player-screen',
     ],
+    'page__screen' => [
+      'template' => 'page--screen',
+      'base hook' => 'page',
+    ],
   ];
+}
+
+function signage_display_theme_suggestions_page_alter(&$suggestions, $variables) {
+  $route_match = \Drupal::routeMatch();
+  if ($route_match->getRouteName() === 'signage_player.screen') {
+    $suggestions[] = 'page__screen';
+  }
 }
 
 /**

@@ -5,3 +5,7 @@ player:
   dependencies:
     - core/drupal
     - core/once
+fullscreen:
+  css:
+    theme:
+      css/fullscreen.css: {}
