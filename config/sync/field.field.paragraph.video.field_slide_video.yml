@@ -1,0 +1,25 @@
+uuid: 40450d2d-dc00-48e3-8c7f-46ff5b1dd25a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_slide_video
+    - paragraphs.paragraphs_type.video
+id: paragraph.video.field_slide_video
+field_name: field_slide_video
+entity_type: paragraph
+bundle: video
+label: 'Video slide'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: views
+  handler_settings:
+    view:
+      view_name: all_video_slides
+      display_name: entity_reference_1
+      arguments: {  }
+field_type: entity_reference

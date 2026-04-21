@@ -1,0 +1,44 @@
+uuid: 07fc6623-5aa8-4672-a553-4c5760e3c588
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_type
+    - paragraphs.paragraphs_type.image
+    - paragraphs.paragraphs_type.playlist_item
+    - paragraphs.paragraphs_type.text
+    - paragraphs.paragraphs_type.video
+  module:
+    - entity_reference_revisions
+id: paragraph.playlist_item.field_type
+field_name: field_type
+entity_type: paragraph
+bundle: playlist_item
+label: Media
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    target_bundles:
+      image: image
+      text: text
+      video: video
+    negate: 0
+    target_bundles_drag_drop:
+      image:
+        weight: -8
+        enabled: true
+      playlist_item:
+        weight: -9
+        enabled: false
+      text:
+        weight: -7
+        enabled: true
+      video:
+        weight: -6
+        enabled: true
+field_type: entity_reference_revisions

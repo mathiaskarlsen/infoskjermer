@@ -1,0 +1,31 @@
+uuid: fe834d26-c2f6-4519-83ed-63f4c9a9ec0d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.text.field_duration_seconds
+    - field.field.paragraph.text.field_text
+    - paragraphs.paragraphs_type.text
+id: paragraph.text.default
+targetEntityType: paragraph
+bundle: text
+mode: default
+content:
+  field_duration_seconds:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_text:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden: {  }

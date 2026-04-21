@@ -3,27 +3,20 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.paragraph.playlist_item.field_duration_seconds
     - field.field.paragraph.playlist_item.field_enabled
     - field.field.paragraph.playlist_item.field_end_at
-    - field.field.paragraph.playlist_item.field_playlist_slide
     - field.field.paragraph.playlist_item.field_sort_order
     - field.field.paragraph.playlist_item.field_start_at
+    - field.field.paragraph.playlist_item.field_type
     - paragraphs.paragraphs_type.playlist_item
   module:
     - datetime
+    - paragraphs
 id: paragraph.playlist_item.default
 targetEntityType: paragraph
 bundle: playlist_item
 mode: default
 content:
-  field_duration_seconds:
-    type: number
-    weight: 4
-    region: content
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
   field_enabled:
     type: boolean_checkbox
     weight: 8
@@ -37,16 +30,6 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
-  field_playlist_slide:
-    type: entity_reference_autocomplete
-    weight: 7
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
   field_sort_order:
     type: number
     weight: 1
@@ -59,6 +42,24 @@ content:
     weight: 2
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_type:
+    type: paragraphs
+    weight: 9
+    region: content
+    settings:
+      title: Paragraph
+      title_plural: Paragraphs
+      edit_mode: open
+      closed_mode: summary
+      autocollapse: none
+      closed_mode_threshold: 0
+      add_mode: dropdown
+      form_display_mode: default
+      default_paragraph_type: ''
+      features:
+        collapse_edit_all: collapse_edit_all
+        duplicate: duplicate
     third_party_settings: {  }
 hidden:
   created: true

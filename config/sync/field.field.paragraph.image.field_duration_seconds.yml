@@ -1,14 +1,14 @@
-uuid: fe77557e-6132-477b-b91c-41b6b96d84e4
+uuid: 0e70b379-8468-4dfd-a259-02982c2930ed
 langcode: en
 status: true
 dependencies:
   config:
     - field.storage.paragraph.field_duration_seconds
-    - paragraphs.paragraphs_type.playlist_item
-id: paragraph.playlist_item.field_duration_seconds
+    - paragraphs.paragraphs_type.image
+id: paragraph.image.field_duration_seconds
 field_name: field_duration_seconds
 entity_type: paragraph
-bundle: playlist_item
+bundle: image
 label: 'Duration (seconds)'
 description: ''
 required: true

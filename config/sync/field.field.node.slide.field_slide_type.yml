@@ -1,0 +1,21 @@
+uuid: 63695336-3434-47c6-84b4-357c67a5ebf0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_slide_type
+    - node.type.slide
+  module:
+    - options
+id: node.slide.field_slide_type
+field_name: field_slide_type
+entity_type: node
+bundle: slide
+label: 'Slide type'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -5,8 +5,10 @@ dependencies:
   config:
     - field.field.node.slide.field_slide_body
     - field.field.node.slide.field_slide_media
+    - field.field.node.slide.field_slide_type
     - node.type.slide
   module:
+    - options
     - text
     - user
 id: node.slide.default
@@ -29,6 +31,13 @@ content:
       link: false
     third_party_settings: {  }
     weight: 104
+    region: content
+  field_slide_type:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 105
     region: content
   links:
     settings: {  }

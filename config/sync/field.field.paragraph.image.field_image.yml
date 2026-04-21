@@ -1,0 +1,25 @@
+uuid: 291c310d-f183-4172-ad98-94422ad31e68
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_image
+    - paragraphs.paragraphs_type.image
+id: paragraph.image.field_image
+field_name: field_image
+entity_type: paragraph
+bundle: image
+label: Image
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: views
+  handler_settings:
+    view:
+      view_name: all_image_slides
+      display_name: entity_reference_1
+      arguments: {  }
+field_type: entity_reference

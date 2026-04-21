@@ -1,0 +1,25 @@
+uuid: f56cd5c1-b415-4560-84f0-49e4a3d93eb1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_duration_seconds
+    - paragraphs.paragraphs_type.text
+id: paragraph.text.field_duration_seconds
+field_name: field_duration_seconds
+entity_type: paragraph
+bundle: text
+label: 'Duration (seconds)'
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    value: 10
+default_value_callback: ''
+settings:
+  min: 1
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

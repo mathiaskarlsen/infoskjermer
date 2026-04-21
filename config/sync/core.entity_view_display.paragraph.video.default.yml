@@ -1,0 +1,21 @@
+uuid: f5ff32bf-1e71-42e6-a523-2cbd29737a26
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.video.field_slide_video
+    - paragraphs.paragraphs_type.video
+id: paragraph.video.default
+targetEntityType: paragraph
+bundle: video
+mode: default
+content:
+  field_slide_video:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden: {  }
