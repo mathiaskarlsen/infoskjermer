@@ -21,10 +21,10 @@ class ScreenPlaybackResolver {
   public function resolve(int $screenId): array {
     $result = [
       'screen' => null,
-      'playlist' => null,
+      'playlists' => [],
       'status' => [
         'screen_found' => false,
-        'playlist_found' => false,
+        'playlists_found' => 0,
         'items_found' => 0,
         'total_items' => 0,
         'enabled_items' => 0,
@@ -32,6 +32,7 @@ class ScreenPlaybackResolver {
         'typed_items' => 0,
         'image_items' => 0,
         'valid_slide_items' => 0,
+        'duplicate_items_skipped' => 0,
         'fallback_reason' => null,
       ],
       'items' => [],
@@ -53,75 +54,95 @@ class ScreenPlaybackResolver {
     $result['status']['screen_found'] = true;
 
     if (!$screen->hasField('field_screen_playlist') || $screen->get('field_screen_playlist')->isEmpty()) {
-      $result['status']['fallback_reason'] = 'playlist_missing';
+      $result['status']['fallback_reason'] = 'playlists_missing';
       return $result;
     }
 
-    $playlist = $screen->get('field_screen_playlist')->entity;
+    $playlists = [];
+    foreach ($screen->get('field_screen_playlist')->referencedEntities() as $playlist) {
+      if ($playlist instanceof NodeInterface && $playlist->bundle() === 'playlist') {
+        $playlists[] = $playlist;
+      }
+    }
 
-    if (!$playlist instanceof NodeInterface || $playlist->bundle() !== 'playlist') {
-      $result['status']['fallback_reason'] = 'playlist_missing';
+    if (!$playlists) {
+      $result['status']['fallback_reason'] = 'playlists_missing';
       return $result;
     }
 
-    $result['playlist'] = [
-      'id' => (int) $playlist->id(),
-      'title' => $playlist->label(),
-    ];
-    $result['status']['playlist_found'] = true;
-
-    if (!$playlist->hasField('field_playlist_items') || $playlist->get('field_playlist_items')->isEmpty()) {
-      $result['status']['fallback_reason'] = 'playlist_empty';
-      return $result;
-    }
+    $result['status']['playlists_found'] = count($playlists);
 
     $items = [];
-    $paragraphs = $playlist->get('field_playlist_items')->referencedEntities();
+    $seenSlideIds = [];
 
-    foreach ($paragraphs as $paragraph) {
-      if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'playlist_item') {
+    foreach ($playlists as $playlist) {
+      $result['playlists'][] = [
+        'id' => (int) $playlist->id(),
+        'title' => $playlist->label(),
+      ];
+
+      if (!$playlist->hasField('field_playlist_items') || $playlist->get('field_playlist_items')->isEmpty()) {
         continue;
       }
 
-      $result['status']['total_items']++;
+      $playlistItems = [];
 
-      if (!$this->isEnabled($paragraph)) {
-        continue;
+      foreach ($playlist->get('field_playlist_items')->referencedEntities() as $paragraph) {
+        if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'playlist_item') {
+          continue;
+        }
+
+        $result['status']['total_items']++;
+
+        if (!$this->isEnabled($paragraph)) {
+          continue;
+        }
+
+        $result['status']['enabled_items']++;
+
+        if (!$this->isActiveNow($paragraph)) {
+          continue;
+        }
+
+        $result['status']['time_window_items']++;
+
+        $typed = $this->getTypedParagraph($paragraph);
+        if (!$typed) {
+          continue;
+        }
+
+        $result['status']['typed_items']++;
+
+        // Only image slides are implemented in this iteration. Text and video
+        // paragraphs are intentionally ignored until their renderers exist.
+        if ($typed->bundle() !== 'image') {
+          continue;
+        }
+
+        $result['status']['image_items']++;
+
+        $item = $this->buildImageItem($paragraph, $typed);
+        if ($item === null) {
+          continue;
+        }
+
+        $result['status']['valid_slide_items']++;
+
+        if (isset($seenSlideIds[$item['slide_id']])) {
+          $result['status']['duplicate_items_skipped']++;
+          continue;
+        }
+
+        $seenSlideIds[$item['slide_id']] = true;
+        $playlistItems[] = $item;
       }
 
-      $result['status']['enabled_items']++;
+      usort($playlistItems, fn(array $a, array $b) => $a['order'] <=> $b['order']);
 
-      if (!$this->isActiveNow($paragraph)) {
-        continue;
+      foreach ($playlistItems as $item) {
+        $items[] = $item;
       }
-
-      $result['status']['time_window_items']++;
-
-      $typed = $this->getTypedParagraph($paragraph);
-      if (!$typed) {
-        continue;
-      }
-
-      $result['status']['typed_items']++;
-
-      // Only image slides are implemented in this iteration. Text and video
-      // paragraphs are intentionally ignored until their renderers exist.
-      if ($typed->bundle() !== 'image') {
-        continue;
-      }
-
-      $result['status']['image_items']++;
-
-      $item = $this->buildImageItem($paragraph, $typed);
-      if ($item === null) {
-        continue;
-      }
-
-      $result['status']['valid_slide_items']++;
-      $items[] = $item;
     }
-
-    usort($items, fn(array $a, array $b) => $a['order'] <=> $b['order']);
 
     $result['items'] = $items;
     $result['status']['items_found'] = count($items);
@@ -135,7 +156,7 @@ class ScreenPlaybackResolver {
 
   protected function inferFallbackReason(array $status): string {
     if ($status['total_items'] === 0) {
-      return 'playlist_empty';
+      return 'playlists_empty';
     }
     if ($status['enabled_items'] === 0) {
       return 'all_items_disabled';

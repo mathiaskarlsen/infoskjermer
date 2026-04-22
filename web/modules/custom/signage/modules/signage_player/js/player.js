@@ -35,10 +35,10 @@
           switch (reason) {
             case 'screen_not_found':
               return 'Screen not found.';
-            case 'playlist_missing':
-              return 'No playlist is connected to this screen.';
-            case 'playlist_empty':
-              return 'This playlist has no items.';
+            case 'playlists_missing':
+              return 'No playlists are connected to this screen.';
+            case 'playlists_empty':
+              return 'The connected playlists have no items.';
             case 'all_items_disabled':
               return 'All playlist items are disabled.';
             case 'all_items_outside_schedule':
