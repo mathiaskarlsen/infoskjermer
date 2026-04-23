@@ -43,6 +43,7 @@ module:
   signage_dashboard: 0
   signage_player: 0
   signage_screen: 0
+  signage_share: 0
   system: 0
   taxonomy: 0
   text: 0

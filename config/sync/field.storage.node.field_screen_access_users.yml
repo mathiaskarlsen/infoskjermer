@@ -1,12 +1,5 @@
-uuid: 61dff028-e676-4aea-a848-13abde356e86
 langcode: en
 status: true
-dependencies:
-  module:
-    - node
-    - user
-_core:
-  default_config_hash: JCmetR72cJ8GdP7tv1Uj_6AJkRaL2NRMQB-fhzdRAiI
 id: node.field_screen_access_users
 field_name: field_screen_access_users
 entity_type: node
@@ -20,3 +13,10 @@ translatable: true
 indexes: {  }
 persist_with_no_fields: false
 custom_storage: false
+uuid: 61dff028-e676-4aea-a848-13abde356e86
+dependencies:
+  module:
+    - node
+    - user
+_core:
+  default_config_hash: JCmetR72cJ8GdP7tv1Uj_6AJkRaL2NRMQB-fhzdRAiI
