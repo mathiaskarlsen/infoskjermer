@@ -2,3 +2,8 @@ dashboard:
   css:
     theme:
       css/dashboard.css: {}
+  js:
+    js/dashboard-confirm-remove.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

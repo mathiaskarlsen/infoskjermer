@@ -9,23 +9,30 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
 use Drupal\node\NodeInterface;
 use Drupal\signage_player\Service\ScreenPlaybackResolver;
+use Drupal\signage_share\Service\ShareManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 final class DashboardController extends ControllerBase {
 
   public function __construct(
     private readonly ScreenPlaybackResolver $screenPlaybackResolver,
+    private readonly ShareManager $shareManager,
   ) {}
 
   public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('signage_player.screen_playback_resolver'),
+      $container->get('signage_share.manager'),
     );
   }
 
   public function build(): array {
     $account = $this->currentUser();
     $screens = $this->loadMyScreens();
+    $messages = $this->shareManager->loadReceivedMessages((int) $account->id(), ['new', 'seen', 'copied']) ?? [];
+    if (!is_array($messages)) {
+      $messages = [];
+    }
 
     return [
       '#type' => 'container',
@@ -60,6 +67,21 @@ final class DashboardController extends ControllerBase {
             'class' => ['signage-dashboard__lead'],
           ],
         ],
+      ],
+
+      'shared_messages_section' => [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['dashboard-panel'],
+        ],
+        'title' => [
+          '#type' => 'html_tag',
+          '#tag' => 'h3',
+          '#value' => (string) $this->t('Nye fellesmeldinger (@count)', [
+            '@count' => count($messages),
+          ]),
+        ],
+        'content' => $this->buildSharedMessagesSection($messages),
       ],
 
       'screens_section' => [
@@ -141,7 +163,7 @@ final class DashboardController extends ControllerBase {
       if ($order_compare !== 0) {
         return $order_compare;
       }
-    
+
       return strcasecmp($a['slide_title'], $b['slide_title']);
     });
 
@@ -369,6 +391,167 @@ final class DashboardController extends ControllerBase {
       ];
     }
 
+    return $build;
+  }
+
+  private function buildSharedMessagesSection(array $messages): array {
+    if (!$messages) {
+      return $this->buildEmptyMessage($this->t('Ingen nye fellesmeldinger.'));
+    }
+  
+    $userStorage = $this->entityTypeManager()->getStorage('user');
+  
+    $build = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['dashboard-share-list'],
+      ],
+    ];
+  
+    foreach ($messages as $index => $message) {
+      $sender = $userStorage->load((int) $message->sender_uid);
+      $senderName = $sender ? $sender->getDisplayName() : (string) $this->t('Ukjent bruker');
+      $slides = $this->shareManager->loadMessageSlides((int) $message->id);
+        
+      $slideBuild = [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['dashboard-share-card__slides'],
+        ],
+      ];
+  
+      foreach ($slides as $delta => $slide) {
+        if (!$slide instanceof NodeInterface || $slide->bundle() !== 'slide') {
+          continue;
+        }
+  
+        $slideBuild['item_' . $delta] = $this->buildSharedSlidePreview($slide);
+      }
+  
+      $createdLabel = \Drupal::service('date.formatter')->format((int) $message->created, 'custom', 'd.m H:i');
+      $slideCount = is_array($slides) ? count($slides) : 0;
+  
+      $build['item_' . $index] = [
+        '#type' => 'details',
+        '#open' => FALSE,
+        '#attributes' => [
+          'class' => ['dashboard-share-card', 'dashboard-share-card--collapsible'],
+        ],
+        '#title' => $senderName . ' — ' . $createdLabel . ' — ' . $slideCount . ' ' . $this->t('slides'),
+      
+      'message' => [
+        '#type' => 'html_tag',
+        '#tag' => 'p',
+        '#value' => $message->message !== '' ? $message->message : (string) $this->t('Ingen beskjed.'),
+        '#attributes' => [
+          'class' => ['dashboard-share-card__message'],
+        ],
+      ],
+      
+      'slides' => $slideBuild,
+      
+      'actions' => [
+          '#type' => 'container',
+          '#attributes' => [
+            'class' => ['dashboard-share-card__actions'],
+          ],
+          'copy' => [
+            '#type' => 'link',
+            '#title' => $this->t('Kopier alle til mine slides'),
+            '#url' => Url::fromRoute('signage_share.copy', ['message' => $message->id]),
+            '#options' => [
+              'attributes' => [
+                'class' => ['dashboard-action-link'],
+              ],
+            ],
+          ],
+          'remove' => [
+            '#type' => 'link',
+            '#title' => $this->t('Fjern melding'),
+            '#url' => Url::fromRoute('signage_share.archive', ['message' => $message->id]),
+            '#options' => [
+              'attributes' => [
+                'class' => ['dashboard-action-link', 'dashboard-action-link--danger', 'js-confirm-remove-message'],
+                'data-confirm-message' => (string) $this->t('Er du sikker på at du vil fjerne meldingen fra dashboardet?'),
+              ],
+            ],
+          ],
+        ],
+      ];
+    }
+  
+    return $build;
+  }
+
+  private function buildSharedSlidePreview(NodeInterface $slide): array {
+    $body = '';
+  
+    if ($slide->hasField('field_slide_body') && !$slide->get('field_slide_body')->isEmpty()) {
+      $body = Unicode::truncate(
+        trim(html_entity_decode(strip_tags((string) $slide->get('field_slide_body')->value))),
+        60,
+        TRUE,
+        TRUE
+      );
+    }
+  
+    $thumb = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['dashboard-share-slide__thumb', 'is-empty'],
+      ],
+      'label' => [
+        '#markup' => $this->t('No image'),
+      ],
+    ];
+  
+    if (
+      $slide->hasField('field_slide_media') &&
+      !$slide->get('field_slide_media')->isEmpty() &&
+      $slide->get('field_slide_media')->entity &&
+      $slide->get('field_slide_media')->entity->hasField('field_media_image') &&
+      !$slide->get('field_slide_media')->entity->get('field_media_image')->isEmpty() &&
+      $slide->get('field_slide_media')->entity->get('field_media_image')->entity
+    ) {
+      $file = $slide->get('field_slide_media')->entity->get('field_media_image')->entity;
+  
+      $thumb = [
+        '#theme' => 'image',
+        '#uri' => $file->getFileUri(),
+        '#alt' => $slide->label(),
+        '#attributes' => [
+          'class' => ['dashboard-share-slide__image'],
+        ],
+      ];
+    }
+  
+    $build = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['dashboard-share-slide'],
+      ],
+      'thumb' => $thumb,
+      'content' => [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['dashboard-share-slide__content'],
+        ],
+        'title' => [
+          '#type' => 'html_tag',
+          '#tag' => 'strong',
+          '#value' => $slide->label(),
+        ],
+      ],
+    ];
+  
+    if ($body !== '') {
+      $build['content']['body'] = [
+        '#type' => 'html_tag',
+        '#tag' => 'p',
+        '#value' => $body,
+      ];
+    }
+  
     return $build;
   }
 

@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function signage_share_schema(): array {
+  $schema['signage_share_message'] = [
+    'description' => 'Stores shared slide messages between users.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'sender_uid' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'recipient_uid' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'message' => [
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => FALSE,
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'status' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'new',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'recipient_uid' => ['recipient_uid'],
+      'status' => ['status'],
+    ],
+  ];
+
+  $schema['signage_share_message_item'] = [
+    'description' => 'Stores slides that belong to a shared message.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'share_message_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'slide_id' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'share_message_id' => ['share_message_id'],
+      'slide_id' => ['slide_id'],
+    ],
+  ];
+
+  return $schema;
+}

@@ -1,0 +1,23 @@
+signage_share.share_slides:
+  path: '/share-slides'
+  defaults:
+    _form: '\Drupal\signage_share\Form\ShareSlidesForm'
+    _title: 'Del slides'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
+signage_share.copy:
+  path: '/dashboard/shared-messages/{message}/copy'
+  defaults:
+    _controller: '\Drupal\signage_share\Controller\ShareActionController::copy'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    message: \d+
+
+signage_share.archive:
+  path: '/dashboard/shared-messages/{message}/archive'
+  defaults:
+    _controller: '\Drupal\signage_share\Controller\ShareActionController::archive'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    message: \d+

@@ -1,0 +1,8 @@
+services:
+  signage_share.manager:
+    class: Drupal\signage_share\Service\ShareManager
+    arguments:
+      - '@database'
+      - '@entity_type.manager'
+      - '@current_user'
+      - '@datetime.time'

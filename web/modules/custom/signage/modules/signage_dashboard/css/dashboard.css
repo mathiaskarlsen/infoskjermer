@@ -224,16 +224,7 @@
 }
 
 .dashboard-screen-media--collapsible>summary::before {
-    content: "";
-    position: absolute;
     left: 0.15rem;
-    top: 50%;
-    width: 0.42rem;
-    height: 0.42rem;
-    border-right: 2px solid #667085;
-    border-bottom: 2px solid #667085;
-    transform: translateY(-55%) rotate(-45deg);
-    transition: transform 0.15s ease;
 }
 
 .dashboard-screen-media--collapsible[open]>summary::before {
@@ -409,4 +400,283 @@
     .dashboard-media-grid--nested {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 0.7rem;   }
+}
+
+.dashboard-share-list {
+    display: grid;
+    gap: 0.12rem;
+    margin: 0;
+}
+
+.dashboard-share-list .olivero-details {
+    margin-block: 0 !important;
+}
+
+.dashboard-share-card--collapsible {
+    margin: 0 !important;
+    margin-block: 0 !important;
+    border: 1px solid #e7ecf1;
+    border-radius: 10px;
+    background: #fbfcfe;
+    overflow: hidden;
+    box-shadow: none;
+}
+
+.dashboard-share-card--collapsible>summary {
+    position: relative;
+    cursor: pointer;
+    list-style: none;
+    margin: 0;
+    padding: 0.68rem 1rem 0.68rem 2rem;
+    font-weight: 700;
+    font-size: 0.97rem;
+    line-height: 1.25;
+    color: #101828;
+    background: #fbfcfe;
+    border-bottom: 1px solid transparent;
+}
+.dashboard-share-card--collapsible>summary::before {
+    left: 0.85rem !important;
+    top: 50% !important;
+    transform: translateY(-55%) rotate(45deg) !important;
+}
+
+.dashboard-share-card--collapsible[open]>summary::before {
+    transform: translateY(-45%) rotate(135deg) !important;
+}
+
+.dashboard-share-card--collapsible>summary::-webkit-details-marker {
+    display: none;
+}
+
+.dashboard-share-card--collapsible>summary::marker {
+    content: "";
+}
+
+.dashboard-share-card--collapsible[open]>summary {
+    background: #fff;
+    border-bottom-color: #e7ecf1;
+}
+
+.dashboard-share-card--collapsible>.details-wrapper,
+.dashboard-share-card--collapsible>div {
+    padding: 0 1rem 0.85rem;
+}
+
+.dashboard-share-card__message {
+    margin: 0.68rem 0 0.5rem;
+    color: #101828;
+    font-size: 0.93rem;
+    line-height: 1.35;
+}
+
+.dashboard-share-card__slides {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0 0 0.65rem;
+}
+
+.dashboard-share-slide {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 0.52rem;
+    align-items: center;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #e7ecf1;
+    border-radius: 9px;
+    background: #fff;
+}
+
+.dashboard-share-slide__thumb,
+.dashboard-share-slide__image {
+    width: 64px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 6px;
+    display: block;
+    background: #eef2f6;
+    flex-shrink: 0;
+}
+
+.dashboard-share-slide__thumb.is-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #667085;
+    font-size: 0.7rem;
+}
+
+.dashboard-share-slide__content {
+    min-width: 0;
+}
+
+.dashboard-share-slide__content strong {
+    display: block;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    color: #101828;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dashboard-share-slide__content p {
+    margin: 0.08rem 0 0;
+    color: #667085;
+    font-size: 0.78rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.dashboard-share-card__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.1rem;
+    padding-top: 0.08rem;
+}
+
+.dashboard-share-card__actions .dashboard-action-link:first-child {
+    margin-right: auto;
+}
+
+.dashboard-action-link--danger {
+    color: #b42318;
+}
+
+.dashboard-action-link--danger:hover {
+    color: #912018;
+}
+
+@media (max-width: 720px) {
+    .dashboard-share-list {
+        gap: 0.1rem;
+    }
+
+.dashboard-share-card--collapsible > summary {
+    padding: 0.64rem 0.85rem 0.64rem 1.85rem;
+    font-size: 0.92rem;
+}
+
+    .dashboard-share-card--collapsible>.details-wrapper,
+    .dashboard-share-card--collapsible>div {
+        padding: 0 0.85rem 0.75rem;
+    }
+
+    .dashboard-share-slide {
+        grid-template-columns: 56px 1fr;
+        gap: 0.48rem;
+        padding: 0.36rem 0.44rem;
+    }
+
+    .dashboard-share-slide__thumb,
+    .dashboard-share-slide__image {
+        width: 56px;
+        height: 32px;
+    }
+}
+
+.share-slides-form {
+    max-width: 100%;
+}
+
+.share-slide-picker__heading {
+    margin: 0 0 0.75rem;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #101828;
+}
+
+.share-slide-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0;
+    margin: 0 0 1rem;
+}
+
+.share-slide-picker__empty {
+    margin: 0;
+    color: #667085;
+}
+
+.share-slide-picker__item {
+    display: flex;
+    grid-auto-rows: 60px;
+    gap: 1rem;
+    align-items: center;
+    padding: 0rem;
+    border: 1px solid #dfe4ea;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    min-width: 0;
+}
+
+.share-slide-picker__checkbox {
+    margin: 0;
+}
+
+.share-slide-picker__item input[type="checkbox"] {
+    margin: 0.2rem;
+}
+
+.share-slide-picker__preview {
+    display: contents;
+}
+
+.share-slide-picker__thumb,
+.share-slide-picker__image {
+    width: 70px;
+    height: 50px;
+    object-fit: fill;
+    border-radius: 6px;
+    display: block;
+    background: #eef2f6;
+    flex-shrink: 0;
+}
+
+.share-slide-picker__thumb.is-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #667085;
+    font-size: 0.68rem;
+}
+
+.share-slide-picker__title {
+    display: block;
+    margin: 0.1rem;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    color: #101828;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+@media (max-width: 720px) {
+    .share-slide-picker {
+        grid-template-columns: 1fr;
+        gap: 0.45rem;
+    }
+
+    .share-slide-picker__item {
+        grid-template-columns: 1rem 52px minmax(0, 1fr);
+        gap: 1rem;
+        padding: 0.42rem 0.5rem;
+    }
+
+    .share-slide-picker__thumb,
+    .share-slide-picker__image {
+        width: 52px;
+        height: 30px;
+    }
 }
