@@ -10,7 +10,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\node\NodeInterface;
 
-final class ShareManager {
+class ShareManager {
 
   public function __construct(
     private readonly Connection $database,
