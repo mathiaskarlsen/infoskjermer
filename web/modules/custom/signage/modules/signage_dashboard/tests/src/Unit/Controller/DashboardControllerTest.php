@@ -8,6 +8,7 @@ use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\signage_dashboard\Controller\DashboardController;
 use Drupal\signage_player\Service\ScreenPlaybackResolver;
+use Drupal\signage_share\Service\ShareManager;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
@@ -35,7 +36,10 @@ final class DashboardControllerTest extends UnitTestCase {
     \Drupal::setContainer($container);
 
     $resolver = $this->createMock(ScreenPlaybackResolver::class);
-    $this->controller = new DashboardController($resolver);
+    // ShareManager is final and is not exercised by the methods under test;
+    // instantiate it without invoking its constructor.
+    $shareManager = (new \ReflectionClass(ShareManager::class))->newInstanceWithoutConstructor();
+    $this->controller = new DashboardController($resolver, $shareManager);
     $this->controller->setStringTranslation($this->getStringTranslationStub());
   }
 
