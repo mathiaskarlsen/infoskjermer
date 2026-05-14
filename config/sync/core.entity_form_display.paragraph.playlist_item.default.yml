@@ -3,49 +3,74 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.paragraph.playlist_item.field_active_days
     - field.field.paragraph.playlist_item.field_enabled
     - field.field.paragraph.playlist_item.field_end_at
     - field.field.paragraph.playlist_item.field_sort_order
+    - field.field.paragraph.playlist_item.field_start_and_end_date
     - field.field.paragraph.playlist_item.field_start_at
+    - field.field.paragraph.playlist_item.field_time_range
     - field.field.paragraph.playlist_item.field_type
     - paragraphs.paragraphs_type.playlist_item
   module:
     - datetime
+    - datetime_range
     - paragraphs
+    - time_field
 id: paragraph.playlist_item.default
 targetEntityType: paragraph
 bundle: playlist_item
 mode: default
 content:
+  field_active_days:
+    type: options_buttons
+    weight: 6
+    region: content
+    settings: {  }
+    third_party_settings: {  }
   field_enabled:
     type: boolean_checkbox
-    weight: 8
+    weight: 4
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   field_end_at:
     type: datetime_default
-    weight: 3
+    weight: 2
     region: content
     settings: {  }
     third_party_settings: {  }
   field_sort_order:
     type: number
-    weight: 1
+    weight: 0
     region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-  field_start_at:
-    type: datetime_default
-    weight: 2
+  field_start_and_end_date:
+    type: daterange_default
+    weight: 3
     region: content
     settings: {  }
     third_party_settings: {  }
+  field_start_at:
+    type: datetime_default
+    weight: 1
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_time_range:
+    type: time_range_widget
+    weight: 7
+    region: content
+    settings:
+      enabled: false
+      step: 5
+    third_party_settings: {  }
   field_type:
     type: paragraphs
-    weight: 9
+    weight: 5
     region: content
     settings:
       title: Paragraph
