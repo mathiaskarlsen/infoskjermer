@@ -9,6 +9,7 @@ use Drupal\Core\Access\AccessResultInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\node\NodeInterface;
 
 /**
@@ -20,7 +21,7 @@ use Drupal\node\NodeInterface;
 class SignageAccessHooks {
 
   public function __construct(
-    protected readonly AccountInterface $currentUser,
+    protected readonly AccountProxyInterface $currentUser,
   ) {}
 
   /**

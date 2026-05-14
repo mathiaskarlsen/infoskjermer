@@ -10,6 +10,7 @@ use Drupal\Core\Access\AccessResultNeutral;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Cache\Context\CacheContextsManager;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\node\NodeInterface;
 use Drupal\signage_access\Hook\SignageAccessHooks;
 use Drupal\Tests\UnitTestCase;
@@ -31,7 +32,7 @@ final class SignageAccessHookTest extends UnitTestCase {
     $container->set('cache_contexts_manager', $cacheContextsManager);
     \Drupal::setContainer($container);
 
-    $this->hooks = new SignageAccessHooks($this->mockAccount(uid: 0));
+    $this->hooks = new SignageAccessHooks($this->createMock(AccountProxyInterface::class));
   }
 
   public function testNonScreenBundleReturnsNeutral(): void {
