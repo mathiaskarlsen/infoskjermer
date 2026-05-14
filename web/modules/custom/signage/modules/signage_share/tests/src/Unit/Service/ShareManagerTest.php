@@ -443,14 +443,13 @@ final class ShareManagerTest extends UnitTestCase {
       ->method('create')
       ->willReturnOnConsecutiveCalls($copy11, $copy33);
 
-    // The implementation issues the "copied" update twice (a duplicated block).
     $update = $this->mockUpdate();
     $update->method('fields')->with(['status' => 'copied'])->willReturnSelf();
     $update->method('condition')->with('id', 1)->willReturnSelf();
-    $update->expects(self::exactly(2))->method('execute');
+    $update->expects(self::once())->method('execute');
 
     $this->database
-      ->expects(self::exactly(2))
+      ->expects(self::once())
       ->method('update')
       ->with('signage_share_message')
       ->willReturn($update);
@@ -486,13 +485,7 @@ final class ShareManagerTest extends UnitTestCase {
 
     $this->nodeStorage->expects(self::never())->method('create');
 
-    // The duplicated trailing update still fires because that block is
-    // unconditional in the current implementation.
-    $update = $this->mockUpdate();
-    $update->method('fields')->willReturnSelf();
-    $update->method('condition')->willReturnSelf();
-    $update->expects(self::once())->method('execute');
-    $this->database->expects(self::once())->method('update')->willReturn($update);
+    $this->database->expects(self::never())->method('update');
 
     self::assertSame([], $this->manager->copyMessageSlides(1));
   }

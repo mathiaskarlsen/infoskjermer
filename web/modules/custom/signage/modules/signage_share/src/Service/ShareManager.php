@@ -65,9 +65,9 @@ class ShareManager {
       ->condition('recipient_uid', $uid)
       ->condition('status', $statuses, 'IN')
       ->orderBy('created', 'DESC');
-  
+
     $results = $query->execute()->fetchAllAssoc('id');
-  
+
     return is_array($results) ? $results : [];
   }
 
@@ -151,12 +151,8 @@ class ShareManager {
         ->condition('id', $messageId)
         ->execute();
     }
-    
-    $this->database->update('signage_share_message')
-    ->fields(['status' => 'copied'])
-    ->condition('id', $messageId)
-    ->execute();
-  
+
+
   return $newIds;
   }
 
