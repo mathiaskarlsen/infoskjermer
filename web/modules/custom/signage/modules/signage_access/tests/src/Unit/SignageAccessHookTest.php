@@ -10,13 +10,17 @@ use Drupal\Core\Access\AccessResultNeutral;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Cache\Context\CacheContextsManager;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\node\NodeInterface;
+use Drupal\signage_access\Hook\SignageAccessHooks;
 use Drupal\Tests\UnitTestCase;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\MockObject\MockObject;
 
 #[Group('signage_access')]
 final class SignageAccessHookTest extends UnitTestCase {
+
+  private SignageAccessHooks $hooks;
 
   protected function setUp(): void {
     parent::setUp();
@@ -28,14 +32,14 @@ final class SignageAccessHookTest extends UnitTestCase {
     $container->set('cache_contexts_manager', $cacheContextsManager);
     \Drupal::setContainer($container);
 
-    require_once __DIR__ . '/../../../signage_access.module';
+    $this->hooks = new SignageAccessHooks($this->createMock(AccountProxyInterface::class));
   }
 
   public function testNonScreenBundleReturnsNeutral(): void {
     $node = $this->mockNode(bundle: 'article');
     $account = $this->mockAccount(uid: 5);
 
-    $result = signage_access_node_access($node, 'view', $account);
+    $result = $this->hooks->nodeAccess($node, 'view', $account);
 
     self::assertInstanceOf(AccessResultNeutral::class, $result);
   }
@@ -44,25 +48,25 @@ final class SignageAccessHookTest extends UnitTestCase {
     $node = $this->mockNode(bundle: 'screen');
     $account = $this->mockAccount(uid: 5);
 
-    self::assertInstanceOf(AccessResultNeutral::class, signage_access_node_access($node, 'delete', $account));
-    self::assertInstanceOf(AccessResultNeutral::class, signage_access_node_access($node, 'create', $account));
+    self::assertInstanceOf(AccessResultNeutral::class, $this->hooks->nodeAccess($node, 'delete', $account));
+    self::assertInstanceOf(AccessResultNeutral::class, $this->hooks->nodeAccess($node, 'create', $account));
   }
 
   public function testAdminPermissionsBypassAndReturnNeutral(): void {
     $node = $this->mockNode(bundle: 'screen');
     $admin = $this->mockAccount(uid: 5, perms: ['administer nodes']);
 
-    self::assertInstanceOf(AccessResultNeutral::class, signage_access_node_access($node, 'view', $admin));
+    self::assertInstanceOf(AccessResultNeutral::class, $this->hooks->nodeAccess($node, 'view', $admin));
 
     $screenAdmin = $this->mockAccount(uid: 6, perms: ['edit any screen content']);
-    self::assertInstanceOf(AccessResultNeutral::class, signage_access_node_access($node, 'update', $screenAdmin));
+    self::assertInstanceOf(AccessResultNeutral::class, $this->hooks->nodeAccess($node, 'update', $screenAdmin));
   }
 
   public function testOwnerIsAllowed(): void {
     $node = $this->mockNode(bundle: 'screen', ownerId: 10);
     $owner = $this->mockAccount(uid: 10);
 
-    $result = signage_access_node_access($node, 'view', $owner);
+    $result = $this->hooks->nodeAccess($node, 'view', $owner);
 
     self::assertInstanceOf(AccessResultAllowed::class, $result);
   }
@@ -76,7 +80,7 @@ final class SignageAccessHookTest extends UnitTestCase {
     );
     $account = $this->mockAccount(uid: 22);
 
-    $result = signage_access_node_access($node, 'update', $account);
+    $result = $this->hooks->nodeAccess($node, 'update', $account);
 
     self::assertInstanceOf(AccessResultAllowed::class, $result);
   }
@@ -90,7 +94,7 @@ final class SignageAccessHookTest extends UnitTestCase {
     );
     $account = $this->mockAccount(uid: 99);
 
-    $result = signage_access_node_access($node, 'view', $account);
+    $result = $this->hooks->nodeAccess($node, 'view', $account);
 
     self::assertInstanceOf(AccessResultForbidden::class, $result);
   }
@@ -103,7 +107,7 @@ final class SignageAccessHookTest extends UnitTestCase {
     );
     $account = $this->mockAccount(uid: 99);
 
-    $result = signage_access_node_access($node, 'view', $account);
+    $result = $this->hooks->nodeAccess($node, 'view', $account);
 
     self::assertInstanceOf(AccessResultForbidden::class, $result);
   }
