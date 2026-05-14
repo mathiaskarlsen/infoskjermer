@@ -33,6 +33,8 @@ class ScreenPlaybackResolver {
         'image_items' => 0,
         'valid_slide_items' => 0,
         'duplicate_items_skipped' => 0,
+        'screen_groups_found' => 0,
+        'group_playlists_found' => 0,
         'fallback_reason' => null,
       ],
       'items' => [],
@@ -53,17 +55,11 @@ class ScreenPlaybackResolver {
     ];
     $result['status']['screen_found'] = true;
 
-    if (!$screen->hasField('field_screen_playlist') || $screen->get('field_screen_playlist')->isEmpty()) {
-      $result['status']['fallback_reason'] = 'playlists_missing';
-      return $result;
-    }
-
-    $playlists = [];
-    foreach ($screen->get('field_screen_playlist')->referencedEntities() as $playlist) {
-      if ($playlist instanceof NodeInterface && $playlist->bundle() === 'playlist') {
-        $playlists[] = $playlist;
-      }
-    }
+    $directPlaylists = $this->collectPlaylistsFromField($screen, 'field_screen_playlist');
+    $groupPlayback = $this->loadGroupPlayback((int) $screen->id());
+    $result['status']['screen_groups_found'] = $groupPlayback['screen_groups_found'];
+    $result['status']['group_playlists_found'] = $groupPlayback['group_playlists_found'];
+    $playlists = $this->deduplicatePlaylists(array_merge($directPlaylists, $groupPlayback['playlists']));
 
     if (!$playlists) {
       $result['status']['fallback_reason'] = 'playlists_missing';
@@ -152,6 +148,81 @@ class ScreenPlaybackResolver {
     }
 
     return $result;
+  }
+
+  /**
+   * @return \Drupal\node\NodeInterface[]
+   */
+  protected function collectPlaylistsFromField(NodeInterface $entity, string $fieldName): array {
+    if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
+      return [];
+    }
+
+    $playlists = [];
+    foreach ($entity->get($fieldName)->referencedEntities() as $playlist) {
+      if ($playlist instanceof NodeInterface && $playlist->bundle() === 'playlist') {
+        $playlists[] = $playlist;
+      }
+    }
+
+    return $playlists;
+  }
+
+  protected function loadGroupPlayback(int $screenId): array {
+    $result = [
+      'screen_groups_found' => 0,
+      'group_playlists_found' => 0,
+      'playlists' => [],
+    ];
+
+    $storage = $this->entityTypeManager->getStorage('node');
+    $groupIds = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'screen_group')
+      ->condition('status', 1)
+      ->condition('field_screen_group_screens.target_id', $screenId)
+      ->execute();
+
+    if (!$groupIds) {
+      return $result;
+    }
+
+    $groups = $storage->loadMultiple($groupIds);
+
+    foreach ($groups as $group) {
+      if (!$group instanceof NodeInterface || $group->bundle() !== 'screen_group') {
+        continue;
+      }
+
+      $result['screen_groups_found']++;
+      $groupPlaylists = $this->collectPlaylistsFromField($group, 'field_screen_group_playlist');
+      $result['group_playlists_found'] += count($groupPlaylists);
+      $result['playlists'] = array_merge($result['playlists'], $groupPlaylists);
+    }
+
+    return $result;
+  }
+
+  /**
+   * @param \Drupal\node\NodeInterface[] $playlists
+   *
+   * @return \Drupal\node\NodeInterface[]
+   */
+  protected function deduplicatePlaylists(array $playlists): array {
+    $deduplicated = [];
+    $seen = [];
+
+    foreach ($playlists as $playlist) {
+      $id = (int) $playlist->id();
+      if (isset($seen[$id])) {
+        continue;
+      }
+
+      $seen[$id] = true;
+      $deduplicated[] = $playlist;
+    }
+
+    return $deduplicated;
   }
 
   protected function inferFallbackReason(array $status): string {
