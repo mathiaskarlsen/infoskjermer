@@ -5,16 +5,14 @@ dependencies:
   config:
     - field.field.paragraph.playlist_item.field_active_days
     - field.field.paragraph.playlist_item.field_enabled
-    - field.field.paragraph.playlist_item.field_end_at
     - field.field.paragraph.playlist_item.field_sort_order
     - field.field.paragraph.playlist_item.field_start_and_end_date
-    - field.field.paragraph.playlist_item.field_start_at
     - field.field.paragraph.playlist_item.field_time_range
     - field.field.paragraph.playlist_item.field_type
     - paragraphs.paragraphs_type.playlist_item
   module:
-    - datetime
     - datetime_range
+    - datetimehideseconds
     - paragraphs
     - time_field
 id: paragraph.playlist_item.default
@@ -35,12 +33,6 @@ content:
     settings:
       display_label: true
     third_party_settings: {  }
-  field_end_at:
-    type: datetime_default
-    weight: 2
-    region: content
-    settings: {  }
-    third_party_settings: {  }
   field_sort_order:
     type: number
     weight: 0
@@ -53,13 +45,9 @@ content:
     weight: 3
     region: content
     settings: {  }
-    third_party_settings: {  }
-  field_start_at:
-    type: datetime_default
-    weight: 1
-    region: content
-    settings: {  }
-    third_party_settings: {  }
+    third_party_settings:
+      datetimehideseconds:
+        hide: true
   field_time_range:
     type: time_range_widget
     weight: 7

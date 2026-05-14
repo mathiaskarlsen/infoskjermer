@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Drupal\Tests\signage_player\Unit\Service;
 
 use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -26,7 +28,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 final class ScreenPlaybackResolverTest extends UnitTestCase {
 
   /**
-   * Fixed "now" used by the time mock — 2023-11-14T22:13:20Z.
+   * Fixed "now" used by the time mock — 2023-11-14T22:13:20Z (Tuesday in UTC).
    */
   private const NOW = 1_700_000_000;
 
@@ -34,6 +36,8 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
   private EntityStorageInterface&MockObject $nodeStorage;
   private TimeInterface&MockObject $time;
   private FileUrlGeneratorInterface&MockObject $fileUrlGenerator;
+  private ConfigFactoryInterface&MockObject $configFactory;
+
   private ScreenPlaybackResolver $resolver;
 
   protected function setUp(): void {
@@ -62,10 +66,18 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
       ->method('generateAbsoluteString')
       ->willReturnCallback(static fn(string $uri): string => 'https://example.test/' . ltrim($uri, '/'));
 
+    // Pin the resolver's local timezone to UTC so day-of-week / seconds-of-day
+    // line up directly with the NOW constant.
+    $config = $this->createMock(ImmutableConfig::class);
+    $config->method('get')->with('timezone.default')->willReturn('UTC');
+    $this->configFactory = $this->createMock(ConfigFactoryInterface::class);
+    $this->configFactory->method('get')->with('system.date')->willReturn($config);
+
     $this->resolver = new ScreenPlaybackResolver(
       $this->entityTypeManager,
       $this->time,
       $this->fileUrlGenerator,
+      $this->configFactory,
     );
   }
 
@@ -263,6 +275,96 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
     self::assertNull($result['status']['fallback_reason']);
   }
 
+  public function testIncludesItemWhenTodayMatchesActiveDay(): void {
+    // NOW is 2023-11-14, which is a Tuesday in UTC.
+    $slide = $this->mockSlide(510);
+    $item = $this->mockPlaylistItem(
+      type: $this->mockImageParagraph($slide),
+      days: ['monday', 'tuesday', 'wednesday'],
+    );
+    $playlist = $this->mockPlaylist(10, [$item]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(1, $result['status']['items_found']);
+    self::assertNull($result['status']['fallback_reason']);
+  }
+
+  public function testSkipsItemWhenTodayIsNotAnActiveDay(): void {
+    // NOW is a Tuesday in UTC; weekend-only items should be skipped.
+    $slide = $this->mockSlide(511);
+    $item = $this->mockPlaylistItem(
+      type: $this->mockImageParagraph($slide),
+      days: ['saturday', 'sunday'],
+    );
+    $playlist = $this->mockPlaylist(10, [$item]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(1, $result['status']['enabled_items']);
+    self::assertSame(0, $result['status']['time_window_items']);
+    self::assertSame('all_items_outside_schedule', $result['status']['fallback_reason']);
+  }
+
+  public function testIncludesItemWhenCurrentTimeIsInsideTimeRange(): void {
+    // NOW is 22:13:20 UTC — 80,000 seconds past midnight.
+    $slide = $this->mockSlide(520);
+    $item = $this->mockPlaylistItem(
+      type: $this->mockImageParagraph($slide),
+      timeRange: ['from' => 75_000, 'to' => 85_000],
+    );
+    $playlist = $this->mockPlaylist(10, [$item]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(1, $result['status']['items_found']);
+    self::assertNull($result['status']['fallback_reason']);
+  }
+
+  public function testSkipsItemWhenCurrentTimeIsOutsideTimeRange(): void {
+    // NOW is 22:13:20 UTC — outside an 08:00–16:00 morning/afternoon range.
+    $slide = $this->mockSlide(521);
+    $item = $this->mockPlaylistItem(
+      type: $this->mockImageParagraph($slide),
+      timeRange: ['from' => 8 * 3600, 'to' => 16 * 3600],
+    );
+    $playlist = $this->mockPlaylist(10, [$item]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(1, $result['status']['enabled_items']);
+    self::assertSame(0, $result['status']['time_window_items']);
+    self::assertSame('all_items_outside_schedule', $result['status']['fallback_reason']);
+  }
+
+  public function testCombinedScheduleFiltersAreAllRequired(): void {
+    // Active day matches but the time window doesn't — must still be skipped.
+    $slide = $this->mockSlide(530);
+    $item = $this->mockPlaylistItem(
+      start: '2023-01-01T00:00:00',
+      end: '2030-01-01T00:00:00',
+      type: $this->mockImageParagraph($slide),
+      days: ['tuesday'],
+      timeRange: ['from' => 0, 'to' => 60],
+    );
+    $playlist = $this->mockPlaylist(10, [$item]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(0, $result['status']['time_window_items']);
+    self::assertSame('all_items_outside_schedule', $result['status']['fallback_reason']);
+  }
+
   public function testSkipsNonImageTypedParagraphs(): void {
     $videoTyped = $this->mockEntity(ParagraphInterface::class, [], ['bundle' => 'video']);
     $playlistItem = $this->mockPlaylistItem(type: $videoTyped);
@@ -350,6 +452,13 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
 
   /**
    * Build a ParagraphInterface mock representing a playlist_item.
+   *
+   * @param list<string>|null $days
+   *   Selected weekdays for field_active_days. NULL omits the field entirely
+   *   (no day restriction).
+   * @param array{from?: int, to?: int}|null $timeRange
+   *   Time range to set on field_time_range. NULL omits the field entirely
+   *   (no time-of-day restriction).
    */
   private function mockPlaylistItem(
     bool $enabled = TRUE,
@@ -357,14 +466,27 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
     ?string $end = NULL,
     ?ParagraphInterface $type = NULL,
     int $order = 1,
+    ?array $days = NULL,
+    ?array $timeRange = NULL,
   ): ParagraphInterface {
+    $dateRange = ($start !== NULL || $end !== NULL)
+      ? $this->fieldItem(['value' => $start, 'end_value' => $end])
+      : $this->fieldItem();
+
     $fields = [
       'field_enabled' => $this->fieldItem(['value' => $enabled ? '1' : '0']),
-      'field_start_at' => $start !== NULL ? $this->fieldItem(['value' => $start]) : $this->fieldItem(),
-      'field_end_at' => $end !== NULL ? $this->fieldItem(['value' => $end]) : $this->fieldItem(),
+      'field_start_and_end_date' => $dateRange,
       'field_type' => $type !== NULL ? $this->fieldItem(['entity' => $type]) : $this->fieldItem(),
       'field_sort_order' => $this->fieldItem(['value' => (string) $order]),
     ];
+
+    if ($days !== NULL) {
+      $fields['field_active_days'] = $this->fieldItem(['multi' => $days]);
+    }
+
+    if ($timeRange !== NULL) {
+      $fields['field_time_range'] = $this->fieldItem($timeRange);
+    }
 
     return $this->mockEntity(ParagraphInterface::class, $fields, [
       'bundle' => 'playlist_item',
@@ -457,17 +579,23 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
    *   Optional values to expose. Empty options → isEmpty() returns TRUE.
    */
   private function fieldItem(array $opts = []): object {
-    return new class($opts) {
+    return new class($opts) implements \IteratorAggregate {
       public mixed $value;
+      public mixed $end_value;
       public mixed $entity;
       private array $referenced;
+      private array $multi;
       private bool $empty;
+      private array $raw;
 
       public function __construct(array $opts) {
         $this->value = $opts['value'] ?? NULL;
+        $this->end_value = $opts['end_value'] ?? NULL;
         $this->entity = $opts['entity'] ?? NULL;
         $this->referenced = $opts['referenced'] ?? [];
+        $this->multi = $opts['multi'] ?? [];
         $this->empty = $opts === [];
+        $this->raw = $opts;
       }
 
       public function isEmpty(): bool {
@@ -480,6 +608,21 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
 
       public function first(): static {
         return $this;
+      }
+
+      public function getValue(): array {
+        return $this->raw;
+      }
+
+      public function getIterator(): \Iterator {
+        foreach ($this->multi as $value) {
+          yield new class($value) {
+            public mixed $value;
+            public function __construct(mixed $value) {
+              $this->value = $value;
+            }
+          };
+        }
       }
     };
   }
