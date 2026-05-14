@@ -36,9 +36,7 @@ final class DashboardControllerTest extends UnitTestCase {
     \Drupal::setContainer($container);
 
     $resolver = $this->createMock(ScreenPlaybackResolver::class);
-    // ShareManager is final and is not exercised by the methods under test;
-    // instantiate it without invoking its constructor.
-    $shareManager = (new \ReflectionClass(ShareManager::class))->newInstanceWithoutConstructor();
+    $shareManager = $this->createMock(ShareManager::class);
     $this->controller = new DashboardController($resolver, $shareManager);
     $this->controller->setStringTranslation($this->getStringTranslationStub());
   }
