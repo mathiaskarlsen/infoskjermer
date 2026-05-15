@@ -1,5 +1,5 @@
 signage_screen.overview:
-  title: 'Screens'
+  title: 'Screen Manager'
   description: 'Overview of registered screens.'
   route_name: signage_screen.overview
   parent: system.admin_content

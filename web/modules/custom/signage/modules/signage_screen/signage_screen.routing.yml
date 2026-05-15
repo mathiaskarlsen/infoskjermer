@@ -1,7 +1,7 @@
 signage_screen.overview:
-  path: '/admin/content/screens'
+  path: '/admin/signage/screens'
   defaults:
     _controller: '\Drupal\signage_screen\Controller\ScreenOverviewController::overview'
-    _title: 'Screens'
+    _title: 'Screen Manager'
   requirements:
     _permission: 'access content overview'

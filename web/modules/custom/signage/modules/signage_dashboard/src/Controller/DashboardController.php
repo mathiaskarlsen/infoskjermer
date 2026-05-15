@@ -143,7 +143,17 @@ final class DashboardController extends ControllerBase {
     $items = [
       [
         '#type' => 'link',
-        '#title' => $this->t('Administrer skjermtilgang'),
+        '#title' => $this->t('Manage screens'),
+        '#url' => Url::fromUri('internal:/admin/signage/screens'),
+        '#options' => [
+          'attributes' => [
+            'class' => ['dashboard-action-link'],
+          ],
+        ],
+      ],
+      [
+        '#type' => 'link',
+        '#title' => $this->t('Manage screen access'),
         '#url' => Url::fromRoute('signage_access.admin'),
         '#options' => [
           'attributes' => [
@@ -157,7 +167,7 @@ final class DashboardController extends ControllerBase {
     if ($createScreenUrl->access($this->currentUser())) {
       $items[] = [
         '#type' => 'link',
-        '#title' => $this->t('Opprett skjerm'),
+        '#title' => $this->t('Create new screen'),
         '#url' => $createScreenUrl,
         '#options' => [
           'attributes' => [
