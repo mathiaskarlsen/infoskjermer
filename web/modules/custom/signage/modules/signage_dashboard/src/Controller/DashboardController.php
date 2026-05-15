@@ -90,6 +90,8 @@ final class DashboardController extends ControllerBase {
         'content' => $this->buildQuickActionsSection(),
       ],
 
+      'admin_section' => $account->hasPermission('administer signage access') ? $this->buildAdminSection() : [],
+
       'shared_messages_section' => [
         '#type' => 'container',
         '#attributes' => [
@@ -118,6 +120,58 @@ final class DashboardController extends ControllerBase {
           ]),
         ],
         'content' => $this->buildMyScreensSection($screens),
+      ],
+    ];
+  }
+
+  private function buildAdminSection(): array {
+    return [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['dashboard-panel'],
+      ],
+      'title' => [
+        '#type' => 'html_tag',
+        '#tag' => 'h3',
+        '#value' => (string) $this->t('Administrator'),
+      ],
+      'content' => $this->buildAdminLinks(),
+    ];
+  }
+
+  private function buildAdminLinks(): array {
+    $items = [
+      [
+        '#type' => 'link',
+        '#title' => $this->t('Administrer skjermtilgang'),
+        '#url' => Url::fromRoute('signage_access.admin'),
+        '#options' => [
+          'attributes' => [
+            'class' => ['dashboard-action-link'],
+          ],
+        ],
+      ],
+    ];
+
+    $createScreenUrl = Url::fromRoute('node.add', ['node_type' => 'screen']);
+    if ($createScreenUrl->access($this->currentUser())) {
+      $items[] = [
+        '#type' => 'link',
+        '#title' => $this->t('Opprett skjerm'),
+        '#url' => $createScreenUrl,
+        '#options' => [
+          'attributes' => [
+            'class' => ['dashboard-action-link'],
+          ],
+        ],
+      ];
+    }
+
+    return [
+      '#theme' => 'item_list',
+      '#items' => $items,
+      '#attributes' => [
+        'class' => ['dashboard-admin-actions'],
       ],
     ];
   }

@@ -110,7 +110,7 @@ class ScreenAccessForm extends FormBase {
         '#type' => 'item',
         '#title' => $this->t('Screen owner'),
         '#markup' => $this->t(
-          '<strong>@name</strong> (@mail) — always has access as the creator.',
+          '<strong>@name</strong> (@mail) — select this user below if they should see the screen in the dashboard.',
           [
             '@name' => $owner->getDisplayName(),
             '@mail' => $owner->getEmail() ?: 'no email',
@@ -118,12 +118,11 @@ class ScreenAccessForm extends FormBase {
         ),
       ];
 
-      // Load all non-admin, active users for the checkboxes.
+      // Load all active users for the checkboxes.
       $user_storage = $this->entityTypeManager->getStorage('user');
       $uids = $user_storage->getQuery()
         ->condition('status', 1)
         ->condition('uid', 0, '>')        // exclude anonymous
-        ->condition('uid', $owner->id(), '!=') // exclude owner (already has access)
         ->accessCheck(FALSE)
         ->sort('name')
         ->execute();
@@ -139,7 +138,7 @@ class ScreenAccessForm extends FormBase {
 
       if (empty($user_options)) {
         $form['users_wrapper']['no_users'] = [
-          '#markup' => $this->t('<p>No other users found.</p>'),
+          '#markup' => $this->t('<p>No users found.</p>'),
         ];
       }
       else {
