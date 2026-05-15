@@ -192,7 +192,8 @@ final class DashboardController extends ControllerBase {
     $nids = $storage->getQuery()
       ->accessCheck(TRUE)
       ->condition('type', 'screen')
-      ->condition('uid', (int) $this->currentUser()->id())
+      ->condition('status', 1)
+      ->condition('field_screen_access_users.target_id', (int) $this->currentUser()->id())
       ->sort('created', 'DESC')
       ->execute();
 
