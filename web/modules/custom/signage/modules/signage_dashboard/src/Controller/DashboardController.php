@@ -69,6 +69,27 @@ final class DashboardController extends ControllerBase {
         ],
       ],
 
+      'quick_actions_section' => [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['dashboard-panel'],
+        ],
+        'title' => [
+          '#type' => 'html_tag',
+          '#tag' => 'h3',
+          '#value' => (string) $this->t('Hurtighandlinger'),
+        ],
+        'help' => [
+          '#type' => 'html_tag',
+          '#tag' => 'p',
+          '#value' => (string) $this->t('Lokalt innhold vises bare på én skjerm. Felles innhold kommer fra skjermgrupper.'),
+          '#attributes' => [
+            'class' => ['dashboard-section-subtitle'],
+          ],
+        ],
+        'content' => $this->buildQuickActionsSection(),
+      ],
+
       'shared_messages_section' => [
         '#type' => 'container',
         '#attributes' => [
@@ -97,6 +118,57 @@ final class DashboardController extends ControllerBase {
           ]),
         ],
         'content' => $this->buildMyScreensSection($screens),
+      ],
+    ];
+  }
+
+  private function buildQuickActionsSection(): array {
+    return [
+      '#theme' => 'item_list',
+      '#items' => [
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Opprett innhold / slide'),
+          '#url' => Url::fromRoute('node.add', ['node_type' => 'slide']),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Opprett spilleliste / playlist'),
+          '#url' => Url::fromRoute('node.add', ['node_type' => 'playlist']),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Opprett skjermgruppe / screen_group'),
+          '#url' => Url::fromRoute('node.add', ['node_type' => 'screen_group']),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Mitt innhold'),
+          '#url' => Url::fromUri('internal:/dashboard/content'),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+      ],
+      '#attributes' => [
+        'class' => ['dashboard-quick-actions'],
       ],
     ];
   }
@@ -244,7 +316,7 @@ final class DashboardController extends ControllerBase {
                 'label' => [
                   '#type' => 'html_tag',
                   '#tag' => 'span',
-                  '#value' => (string) $this->t('Playlist:'),
+                  '#value' => (string) $this->t('Lokal spilleliste:'),
                   '#attributes' => [
                     'class' => ['dashboard-meta-label'],
                   ],
