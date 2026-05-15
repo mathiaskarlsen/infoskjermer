@@ -158,6 +158,16 @@ final class DashboardController extends ControllerBase {
         ],
         [
           '#type' => 'link',
+          '#title' => $this->t('Send fellesmelding'),
+          '#url' => Url::fromRoute('signage_share.share_slides'),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+        [
+          '#type' => 'link',
           '#title' => $this->t('Mitt innhold'),
           '#url' => Url::fromUri('internal:/dashboard/content'),
           '#options' => [
