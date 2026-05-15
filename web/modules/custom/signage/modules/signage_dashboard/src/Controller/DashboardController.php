@@ -273,6 +273,38 @@ final class DashboardController extends ControllerBase {
     ));
   }
 
+  /**
+   * @return \Drupal\node\NodeInterface[]
+   */
+  private function loadScreenGroupsForScreen(NodeInterface $screen): array {
+    if (!$screen->id()) {
+      return [];
+    }
+
+    try {
+      $storage = $this->entityTypeManager()->getStorage('node');
+      $nids = $storage->getQuery()
+        ->accessCheck(TRUE)
+        ->condition('type', 'screen_group')
+        ->condition('status', 1)
+        ->condition('field_screen_group_screens.target_id', (int) $screen->id())
+        ->sort('title', 'ASC')
+        ->execute();
+    }
+    catch (\Throwable) {
+      return [];
+    }
+
+    if (!$nids) {
+      return [];
+    }
+
+    return array_values(array_filter(
+      $storage->loadMultiple($nids),
+      static fn ($node) => $node instanceof NodeInterface && $node->bundle() === 'screen_group' && $node->hasField('field_screen_group_screens')
+    ));
+  }
+
   private function collectActiveMediaForScreen(NodeInterface $screen): array {
     $items = [];
     $seen = [];
@@ -349,6 +381,24 @@ final class DashboardController extends ControllerBase {
       }
 
       $active_media = $this->collectActiveMediaForScreen($screen);
+      $screen_groups = $this->loadScreenGroupsForScreen($screen);
+      $screen_group_names = array_map(
+        static fn (NodeInterface $group): string => $group->label(),
+        $screen_groups
+      );
+      if ($screen_group_names) {
+        $visible_group_names = array_slice($screen_group_names, 0, 3);
+        $screen_group_summary = implode(', ', $visible_group_names);
+        $remaining_group_count = count($screen_group_names) - count($visible_group_names);
+        if ($remaining_group_count > 0) {
+          $screen_group_summary .= ' ' . (string) $this->t('+ @count til', [
+            '@count' => $remaining_group_count,
+          ]);
+        }
+      }
+      else {
+        $screen_group_summary = (string) $this->t('Ingen skjermgrupper');
+      }
 
       $build['item_' . $index] = [
         '#type' => 'container',
@@ -414,6 +464,7 @@ final class DashboardController extends ControllerBase {
                       ],
                     ],
               ],
+              'screen_groups' => $this->buildMetaItem($this->t('Felles innhold:'), $screen_group_summary),
             ],
           ],
 
