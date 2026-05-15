@@ -192,7 +192,7 @@ final class DashboardController extends ControllerBase {
       '#items' => [
         [
           '#type' => 'link',
-          '#title' => $this->t('Opprett innhold / slide'),
+          '#title' => $this->t('Opprett innhold'),
           '#url' => Url::fromRoute('node.add', ['node_type' => 'slide']),
           '#options' => [
             'attributes' => [
@@ -202,7 +202,7 @@ final class DashboardController extends ControllerBase {
         ],
         [
           '#type' => 'link',
-          '#title' => $this->t('Opprett spilleliste / playlist'),
+          '#title' => $this->t('Opprett spilleliste'),
           '#url' => Url::fromRoute('node.add', ['node_type' => 'playlist']),
           '#options' => [
             'attributes' => [
@@ -212,7 +212,7 @@ final class DashboardController extends ControllerBase {
         ],
         [
           '#type' => 'link',
-          '#title' => $this->t('Opprett skjermgruppe / screen_group'),
+          '#title' => $this->t('Opprett skjermgruppe'),
           '#url' => Url::fromRoute('node.add', ['node_type' => 'screen_group']),
           '#options' => [
             'attributes' => [
