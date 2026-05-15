@@ -382,22 +382,19 @@ final class DashboardController extends ControllerBase {
 
       $active_media = $this->collectActiveMediaForScreen($screen);
       $screen_groups = $this->loadScreenGroupsForScreen($screen);
-      $screen_group_names = array_map(
-        static fn (NodeInterface $group): string => $group->label(),
-        $screen_groups
-      );
-      if ($screen_group_names) {
-        $visible_group_names = array_slice($screen_group_names, 0, 3);
-        $screen_group_summary = implode(', ', $visible_group_names);
-        $remaining_group_count = count($screen_group_names) - count($visible_group_names);
+      $screen_group_summary = $this->buildScreenGroupMetaValue($screen_groups);
+      if ($screen_groups) {
+        $remaining_group_count = count($screen_groups) - min(count($screen_groups), 3);
         if ($remaining_group_count > 0) {
-          $screen_group_summary .= ' ' . (string) $this->t('+ @count til', [
-            '@count' => $remaining_group_count,
-          ]);
+          $screen_group_summary['more'] = [
+            '#type' => 'html_tag',
+            '#tag' => 'span',
+            '#value' => (string) $this->t(' + @count til', ['@count' => $remaining_group_count]),
+            '#attributes' => [
+              'class' => ['dashboard-meta-value'],
+            ],
+          ];
         }
-      }
-      else {
-        $screen_group_summary = (string) $this->t('Ingen skjermgrupper');
       }
 
       $build['item_' . $index] = [
@@ -464,7 +461,7 @@ final class DashboardController extends ControllerBase {
                       ],
                     ],
               ],
-              'screen_groups' => $this->buildMetaItem($this->t('Felles innhold:'), $screen_group_summary),
+              'screen_groups' => $this->buildLinkedMetaItem($this->t('Felles innhold:'), $screen_group_summary),
             ],
           ],
 
@@ -497,6 +494,52 @@ final class DashboardController extends ControllerBase {
             'class' => ['dashboard-screen-media', 'dashboard-screen-media--collapsible'],
           ],
           'content' => $this->buildScreenMediaSection($active_media),
+        ],
+      ];
+    }
+
+    return $build;
+  }
+
+  private function buildScreenGroupMetaValue(array $screen_groups): array {
+    if (!$screen_groups) {
+      return [
+        '#type' => 'html_tag',
+        '#tag' => 'span',
+        '#value' => (string) $this->t('Ingen skjermgrupper'),
+        '#attributes' => [
+          'class' => ['dashboard-meta-value'],
+        ],
+      ];
+    }
+
+    $build = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['dashboard-meta-value'],
+      ],
+    ];
+
+    $visible_groups = array_slice($screen_groups, 0, 3);
+    foreach ($visible_groups as $index => $group) {
+      if (!$group instanceof NodeInterface) {
+        continue;
+      }
+
+      if ($index > 0) {
+        $build['separator_' . $index] = [
+          '#plain_text' => ', ',
+        ];
+      }
+
+      $build['group_' . $index] = [
+        '#type' => 'link',
+        '#title' => $group->label(),
+        '#url' => Url::fromRoute('entity.node.canonical', ['node' => $group->id()]),
+        '#options' => [
+          'attributes' => [
+            'class' => ['dashboard-meta-link'],
+          ],
         ],
       ];
     }
@@ -805,6 +848,24 @@ final class DashboardController extends ControllerBase {
           'class' => ['dashboard-meta-value'],
         ],
       ],
+    ];
+  }
+
+  private function buildLinkedMetaItem($label, array $value): array {
+    return [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['dashboard-meta-item'],
+      ],
+      'label' => [
+        '#type' => 'html_tag',
+        '#tag' => 'span',
+        '#value' => (string) $label,
+        '#attributes' => [
+          'class' => ['dashboard-meta-label'],
+        ],
+      ],
+      'value' => $value,
     ];
   }
 
