@@ -28,3 +28,31 @@ function signage_dashboard_user_login_redirect_submit(array &$form, FormStateInt
 
   $form_state->setRedirect('signage_dashboard.page');
 }
+
+/**
+ * Implements hook_form_alter().
+ */
+function signage_dashboard_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  $target_forms = [
+    'node_slide_form',
+    'node_slide_edit_form',
+    'node_playlist_form',
+    'node_playlist_edit_form',
+    'node_screen_group_form',
+    'node_screen_group_edit_form',
+  ];
+
+  if (!in_array($form_id, $target_forms, true) || \Drupal::currentUser()->hasPermission('administer nodes')) {
+    return;
+  }
+
+  foreach (['revision_information', 'revision', 'revision_log', 'uid', 'created', 'path'] as $element) {
+    if (isset($form[$element])) {
+      $form[$element]['#access'] = FALSE;
+    }
+  }
+
+  if (isset($form['actions']['preview'])) {
+    $form['actions']['preview']['#access'] = FALSE;
+  }
+}

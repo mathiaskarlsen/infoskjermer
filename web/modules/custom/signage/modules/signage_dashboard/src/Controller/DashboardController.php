@@ -115,7 +115,7 @@ final class DashboardController extends ControllerBase {
         'title' => [
           '#type' => 'html_tag',
           '#tag' => 'h3',
-          '#value' => (string) $this->t('Dine skjermer (@count)', [
+          '#value' => (string) $this->t('Tildelte skjermer (@count)', [
             '@count' => count($screens),
           ]),
         ],
@@ -319,7 +319,7 @@ final class DashboardController extends ControllerBase {
 
   private function buildMyScreensSection(array $screens): array {
     if (!$screens) {
-      return $this->buildEmptyMessage($this->t('Du har ingen skjermer ennå.'));
+      return $this->buildEmptyMessage($this->t('Du har ingen tildelte skjermer ennå.'));
     }
 
     $build = [
@@ -368,13 +368,11 @@ final class DashboardController extends ControllerBase {
               'class' => ['dashboard-screen-item__main'],
             ],
             'title' => [
-              '#type' => 'link',
-              '#title' => $screen->label(),
-              '#url' => Url::fromRoute('entity.node.edit_form', ['node' => $screen->id()]),
-              '#options' => [
-                'attributes' => [
-                  'class' => ['dashboard-screen-item__title'],
-                ],
+              '#type' => 'html_tag',
+              '#tag' => 'span',
+              '#value' => $screen->label(),
+              '#attributes' => [
+                'class' => ['dashboard-screen-item__title'],
               ],
             ],
             'meta' => [
