@@ -71,17 +71,23 @@ class SignagePlayerHooks {
     }
 
     $field_name = $items->getFieldDefinition()->getName();
-    if (!in_array($field_name, ['field_start_at', 'field_end_at'], TRUE)) {
+    if ($field_name !== 'field_start_and_end_date') {
       return;
     }
 
-    if (!isset($element['value']) || !is_array($element['value'])) {
-      return;
-    }
+    $defaults = [
+      'value' => '00:00:00',
+      'end_value' => '23:59:59',
+    ];
 
-    $default_time = $field_name === 'field_start_at' ? '00:00:00' : '23:59:59';
-    $element['value']['#signage_player_default_time'] = $default_time;
-    $element['value']['#value_callback'] = [self::class, 'datetimeValueCallback'];
+    foreach ($defaults as $key => $default_time) {
+      if (!isset($element[$key]) || !is_array($element[$key])) {
+        continue;
+      }
+
+      $element[$key]['#signage_player_default_time'] = $default_time;
+      $element[$key]['#value_callback'] = [self::class, 'datetimeValueCallback'];
+    }
   }
 
   /**
@@ -138,11 +144,11 @@ class SignagePlayerHooks {
         continue;
       }
 
-      $start = self::datetimeFieldToTimestamp($paragraph, 'field_start_at', '00:00:00');
-      $end = self::datetimeFieldToTimestamp($paragraph, 'field_end_at', '23:59:59');
+      $start = self::datetimeFieldToTimestamp($paragraph, 'field_start_and_end_date', 'value', '00:00:00');
+      $end = self::datetimeFieldToTimestamp($paragraph, 'field_start_and_end_date', 'end_value', '23:59:59');
 
       if ($start !== NULL && $end !== NULL && $end < $start) {
-        $end_element = $form['field_playlist_items']['widget'][$delta]['subform']['field_end_at']['widget'][0]['value'] ?? NULL;
+        $end_element = $form['field_playlist_items']['widget'][$delta]['subform']['field_start_and_end_date']['widget'][0]['end_value'] ?? NULL;
 
         if (is_array($end_element)) {
           $form_state->setError(
@@ -186,9 +192,9 @@ class SignagePlayerHooks {
   }
 
   /**
-   * Convert a paragraph datetime field to timestamp.
+   * Convert a paragraph datetime field property to a timestamp.
    */
-  public static function datetimeFieldToTimestamp(ParagraphInterface $paragraph, string $field_name, ?string $default_time = NULL): ?int {
+  public static function datetimeFieldToTimestamp(ParagraphInterface $paragraph, string $field_name, string $property = 'value', ?string $default_time = NULL): ?int {
     if (!$paragraph->hasField($field_name) || $paragraph->get($field_name)->isEmpty()) {
       return NULL;
     }
@@ -199,7 +205,7 @@ class SignagePlayerHooks {
     }
 
     $raw = $item->getValue();
-    $value = $raw['value'] ?? NULL;
+    $value = $raw[$property] ?? NULL;
 
     if (is_array($value)) {
       $date = $value['date'] ?? NULL;

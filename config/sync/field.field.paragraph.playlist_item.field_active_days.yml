@@ -1,21 +1,21 @@
-uuid: 308db285-e322-4acc-b8c6-41e4c5309fdb
+uuid: a13fe207-cf02-4b9c-9116-aff42c4b41ff
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.paragraph.field_end_at
+    - field.storage.paragraph.field_active_days
     - paragraphs.paragraphs_type.playlist_item
   module:
-    - datetime
-id: paragraph.playlist_item.field_end_at
-field_name: field_end_at
+    - options
+id: paragraph.playlist_item.field_active_days
+field_name: field_active_days
 entity_type: paragraph
 bundle: playlist_item
-label: 'End at'
+label: Days
 description: ''
 required: false
 translatable: false
 default_value: {  }
 default_value_callback: ''
 settings: {  }
-field_type: datetime
+field_type: list_string

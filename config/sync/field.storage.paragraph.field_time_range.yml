@@ -1,17 +1,16 @@
-uuid: 7f7affc5-a689-4552-9463-fbee36811af7
+uuid: 700bd4f2-677b-4ab7-bcce-5919ce82f5fb
 langcode: en
 status: true
 dependencies:
   module:
-    - datetime
     - paragraphs
-id: paragraph.field_end_at
-field_name: field_end_at
+    - time_field
+id: paragraph.field_time_range
+field_name: field_time_range
 entity_type: paragraph
-type: datetime
-settings:
-  datetime_type: datetime
-module: datetime
+type: time_range
+settings: {  }
+module: time_field
 locked: false
 cardinality: 1
 translatable: true
