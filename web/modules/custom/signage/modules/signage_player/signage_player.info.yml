@@ -7,3 +7,6 @@ dependencies:
   - node
   - paragraphs
   - media
+  - datetimehideseconds
+  - datetime_range
+  - time_field
