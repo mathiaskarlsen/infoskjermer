@@ -11,7 +11,7 @@ third_party_settings:
     parent: 'main:'
 name: Playlist
 type: playlist
-description: null
+description: 'Use playlists to group slides together and display them on a screen.'
 help: null
 new_revision: true
 preview_mode: 1

@@ -10,7 +10,7 @@ third_party_settings:
     parent: ''
 name: Screen
 type: screen
-description: null
+description: 'A Drupal object representing a screen. Add playlists to play slides'
 help: null
 new_revision: true
 preview_mode: 1

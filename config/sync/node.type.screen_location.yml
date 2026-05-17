@@ -11,7 +11,7 @@ third_party_settings:
     parent: 'main:'
 name: 'Screen location'
 type: screen_location
-description: null
+description: 'A location in the world where a screen is.'
 help: null
 new_revision: true
 preview_mode: 1

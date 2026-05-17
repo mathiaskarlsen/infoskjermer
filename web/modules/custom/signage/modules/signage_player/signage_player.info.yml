@@ -1,5 +1,6 @@
 name: 'Signage Player'
 type: module
+description: 'Create full-screen player pages for screens.'
 core_version_requirement: ^11
 package: 'Digital Signage'
 dependencies:

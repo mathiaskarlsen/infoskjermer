@@ -11,7 +11,7 @@ dependencies:
 id: all_video_slides
 label: 'All video slides'
 module: views
-description: ''
+description: 'Filter that gets all slides with type set to video. Used by the video paragraph type.'
 tag: ''
 base_table: node_field_data
 base_field: nid
