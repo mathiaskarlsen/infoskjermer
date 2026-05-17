@@ -1,5 +1,6 @@
 name: 'Signage Share'
 type: module
+description: 'Share slides between users.'
 core_version_requirement: ^11
 package: 'Digital Signage'
 dependencies:

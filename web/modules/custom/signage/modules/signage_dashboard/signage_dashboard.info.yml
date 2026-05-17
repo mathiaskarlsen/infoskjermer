@@ -1,5 +1,6 @@
 name: 'Signage Dashboard'
 type: module
+description: 'Dashboard homepage for digital signage.'
 core_version_requirement: ^11
 package: 'Digital Signage'
 dependencies:

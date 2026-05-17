@@ -1,6 +1,6 @@
 name: 'Signage Screen'
 type: module
-description: Screen management helpers for the digital signage project.
+description: 'Screen management helpers for the digital signage project.'
 package: 'Digital Signage'
 core_version_requirement: ^11
 dependencies:

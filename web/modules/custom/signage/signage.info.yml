@@ -1,5 +1,5 @@
 name: 'Signage'
 type: module
-description: 'Signage'
+description: 'Parent module for all signage modules.'
 package: 'Digital Signage'
 core_version_requirement: ^10 || ^11
