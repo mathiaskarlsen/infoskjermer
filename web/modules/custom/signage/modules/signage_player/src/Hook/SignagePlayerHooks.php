@@ -64,6 +64,56 @@ class SignagePlayerHooks {
     }
 
     $form['#validate'][] = [self::class, 'validatePlaylistSchedule'];
+    self::applyPlaylistItemSortDefaults($form, $form_state);
+  }
+
+  /**
+   * Give newly added playlist items the next available sort order.
+   */
+  public static function applyPlaylistItemSortDefaults(array &$form, FormStateInterface $form_state): void {
+    if (empty($form['field_playlist_items']['widget']) || !is_array($form['field_playlist_items']['widget'])) {
+      return;
+    }
+
+    $submitted_items = $form_state->getUserInput()['field_playlist_items'] ?? [];
+    $next_order = 1;
+
+    foreach ($form['field_playlist_items']['widget'] as $delta => &$widget) {
+      if (!is_int($delta) && !ctype_digit((string) $delta)) {
+        continue;
+      }
+
+      if (
+        !isset($widget['subform']['field_sort_order']['widget'][0]['value']) ||
+        !is_array($widget['subform']['field_sort_order']['widget'][0]['value'])
+      ) {
+        continue;
+      }
+
+      $sort_element = &$widget['subform']['field_sort_order']['widget'][0]['value'];
+      $submitted_order = self::extractSubmittedSortOrder($submitted_items[$delta] ?? NULL);
+      if ($submitted_order !== NULL) {
+        $next_order = max($next_order, $submitted_order + 1);
+        continue;
+      }
+
+      $current_order = self::extractSortOrderFromElement($sort_element);
+      $paragraph = $widget['#paragraph'] ?? $widget['subform']['#entity'] ?? NULL;
+      if ($paragraph instanceof ParagraphInterface && !$paragraph->isNew()) {
+        if ($current_order !== NULL) {
+          $next_order = max($next_order, $current_order + 1);
+        }
+        continue;
+      }
+
+      $sort_element['#default_value'] = $next_order;
+      if (!isset($sort_element['#value']) || $sort_element['#value'] === '' || $sort_element['#value'] === NULL) {
+        $sort_element['#value'] = $next_order;
+      }
+
+      $next_order++;
+    }
+    unset($widget, $sort_element);
   }
 
   /**
@@ -180,6 +230,58 @@ class SignagePlayerHooks {
     catch (\Throwable $e) {
       return NULL;
     }
+  }
+
+  /**
+   * Extract a submitted playlist item sort order from Paragraphs input.
+   */
+  private static function extractSubmittedSortOrder(mixed $input): ?int {
+    if (!is_array($input)) {
+      return NULL;
+    }
+
+    foreach ([
+      ['subform', 'field_sort_order', 0, 'value'],
+      ['subform', 'field_sort_order', 'widget', 0, 'value'],
+      ['field_sort_order', 0, 'value'],
+      ['field_sort_order', 'widget', 0, 'value'],
+    ] as $path) {
+      $value = self::getNestedValue($input, $path);
+      if ($value !== NULL && $value !== '') {
+        return (int) $value;
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Extract the current sort order from the rendered number widget.
+   */
+  private static function extractSortOrderFromElement(array $element): ?int {
+    foreach (['#value', '#default_value'] as $key) {
+      if (isset($element[$key]) && $element[$key] !== '') {
+        return (int) $element[$key];
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Read a nested array value without depending on Drupal utility classes.
+   */
+  private static function getNestedValue(array $values, array $path): mixed {
+    $current = $values;
+    foreach ($path as $key) {
+      if (!is_array($current) || !array_key_exists($key, $current)) {
+        return NULL;
+      }
+
+      $current = $current[$key];
+    }
+
+    return $current;
   }
 
 }
