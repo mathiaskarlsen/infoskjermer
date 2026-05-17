@@ -71,7 +71,21 @@ final class SignageAccessHookTest extends UnitTestCase {
     self::assertInstanceOf(AccessResultAllowed::class, $result);
   }
 
-  public function testUserListedInAccessFieldIsAllowed(): void {
+  public function testUserListedInAccessFieldIsAllowedToView(): void {
+    $node = $this->mockNode(
+      bundle: 'screen',
+      ownerId: 1,
+      hasAccessField: TRUE,
+      accessUserIds: [10, 22, 33],
+    );
+    $account = $this->mockAccount(uid: 22);
+
+    $result = $this->hooks->nodeAccess($node, 'view', $account);
+
+    self::assertInstanceOf(AccessResultAllowed::class, $result);
+  }
+
+  public function testUserListedInAccessFieldCannotUpdateScreen(): void {
     $node = $this->mockNode(
       bundle: 'screen',
       ownerId: 1,
@@ -82,7 +96,7 @@ final class SignageAccessHookTest extends UnitTestCase {
 
     $result = $this->hooks->nodeAccess($node, 'update', $account);
 
-    self::assertInstanceOf(AccessResultAllowed::class, $result);
+    self::assertInstanceOf(AccessResultForbidden::class, $result);
   }
 
   public function testUserNotInAccessFieldIsForbidden(): void {

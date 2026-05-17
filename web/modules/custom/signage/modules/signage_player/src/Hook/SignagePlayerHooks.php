@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Drupal\signage_player\Hook;
 
 use Drupal\Core\Datetime\DrupalDateTime;
-use Drupal\Core\Datetime\Element\Datetime;
-use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\Core\Routing\RouteMatchInterface;
@@ -55,42 +53,6 @@ class SignagePlayerHooks {
   }
 
   /**
-   * Implements hook_field_widget_single_element_form_alter().
-   */
-  #[Hook('field_widget_single_element_form_alter')]
-  public function fieldWidgetSingleElementFormAlter(array &$element, FormStateInterface $form_state, array $context): void {
-    $items = $context['items'] ?? NULL;
-
-    if (!$items instanceof FieldItemListInterface) {
-      return;
-    }
-
-    $entity = $items->getEntity();
-    if (!$entity instanceof ParagraphInterface || $entity->bundle() !== 'playlist_item') {
-      return;
-    }
-
-    $field_name = $items->getFieldDefinition()->getName();
-    if ($field_name !== 'field_start_and_end_date') {
-      return;
-    }
-
-    $defaults = [
-      'value' => '00:00:00',
-      'end_value' => '23:59:59',
-    ];
-
-    foreach ($defaults as $key => $default_time) {
-      if (!isset($element[$key]) || !is_array($element[$key])) {
-        continue;
-      }
-
-      $element[$key]['#signage_player_default_time'] = $default_time;
-      $element[$key]['#value_callback'] = [self::class, 'datetimeValueCallback'];
-    }
-  }
-
-  /**
    * Implements hook_form_BASE_FORM_ID_alter() for node_form.
    */
   #[Hook('form_node_form_alter')]
@@ -102,27 +64,56 @@ class SignagePlayerHooks {
     }
 
     $form['#validate'][] = [self::class, 'validatePlaylistSchedule'];
+    self::applyPlaylistItemSortDefaults($form, $form_state);
   }
 
   /**
-   * Custom value callback for datetime widgets.
-   *
-   * Ensures a default time is supplied before Drupal core turns submitted input
-   * into a DrupalDateTime object.
+   * Give newly added playlist items the next available sort order.
    */
-  public static function datetimeValueCallback(&$element, $input, FormStateInterface $form_state) {
-    if ($input !== FALSE && is_array($input)) {
-      $date = $input['date'] ?? NULL;
-      $time = $input['time'] ?? NULL;
-
-      if (is_string($date) && trim($date) !== '') {
-        if (!is_string($time) || trim($time) === '' || str_contains($time, '--')) {
-          $input['time'] = $element['#signage_player_default_time'] ?? '00:00:00';
-        }
-      }
+  public static function applyPlaylistItemSortDefaults(array &$form, FormStateInterface $form_state): void {
+    if (empty($form['field_playlist_items']['widget']) || !is_array($form['field_playlist_items']['widget'])) {
+      return;
     }
 
-    return Datetime::valueCallback($element, $input, $form_state);
+    $submitted_items = $form_state->getUserInput()['field_playlist_items'] ?? [];
+    $next_order = 1;
+
+    foreach ($form['field_playlist_items']['widget'] as $delta => &$widget) {
+      if (!is_int($delta) && !ctype_digit((string) $delta)) {
+        continue;
+      }
+
+      if (
+        !isset($widget['subform']['field_sort_order']['widget'][0]['value']) ||
+        !is_array($widget['subform']['field_sort_order']['widget'][0]['value'])
+      ) {
+        continue;
+      }
+
+      $sort_element = &$widget['subform']['field_sort_order']['widget'][0]['value'];
+      $submitted_order = self::extractSubmittedSortOrder($submitted_items[$delta] ?? NULL);
+      if ($submitted_order !== NULL) {
+        $next_order = max($next_order, $submitted_order + 1);
+        continue;
+      }
+
+      $current_order = self::extractSortOrderFromElement($sort_element);
+      $paragraph = $widget['#paragraph'] ?? $widget['subform']['#entity'] ?? NULL;
+      if ($paragraph instanceof ParagraphInterface && !$paragraph->isNew()) {
+        if ($current_order !== NULL) {
+          $next_order = max($next_order, $current_order + 1);
+        }
+        continue;
+      }
+
+      $sort_element['#default_value'] = $next_order;
+      if (!isset($sort_element['#value']) || $sort_element['#value'] === '' || $sort_element['#value'] === NULL) {
+        $sort_element['#value'] = $next_order;
+      }
+
+      $next_order++;
+    }
+    unset($widget, $sort_element);
   }
 
   /**
@@ -144,11 +135,11 @@ class SignagePlayerHooks {
         continue;
       }
 
-      $start = self::datetimeFieldToTimestamp($paragraph, 'field_start_and_end_date', 'value', '00:00:00');
-      $end = self::datetimeFieldToTimestamp($paragraph, 'field_start_and_end_date', 'end_value', '23:59:59');
+      $start = self::datetimeFieldToTimestamp($paragraph, 'field_start_at', '00:00:00');
+      $end = self::datetimeFieldToTimestamp($paragraph, 'field_end_at', '23:59:59');
 
       if ($start !== NULL && $end !== NULL && $end < $start) {
-        $end_element = $form['field_playlist_items']['widget'][$delta]['subform']['field_start_and_end_date']['widget'][0]['end_value'] ?? NULL;
+        $end_element = $form['field_playlist_items']['widget'][$delta]['subform']['field_end_at']['widget'][0]['value'] ?? NULL;
 
         if (is_array($end_element)) {
           $form_state->setError(
@@ -194,7 +185,7 @@ class SignagePlayerHooks {
   /**
    * Convert a paragraph datetime field property to a timestamp.
    */
-  public static function datetimeFieldToTimestamp(ParagraphInterface $paragraph, string $field_name, string $property = 'value', ?string $default_time = NULL): ?int {
+  public static function datetimeFieldToTimestamp(ParagraphInterface $paragraph, string $field_name, ?string $default_time = NULL): ?int {
     if (!$paragraph->hasField($field_name) || $paragraph->get($field_name)->isEmpty()) {
       return NULL;
     }
@@ -204,9 +195,7 @@ class SignagePlayerHooks {
       return NULL;
     }
 
-    $raw = $item->getValue();
-    $value = $raw[$property] ?? NULL;
-
+    $value = $item->getValue()['value'] ?? $paragraph->get($field_name)->value ?? NULL;
     if (is_array($value)) {
       $date = $value['date'] ?? NULL;
       $time = $value['time'] ?? NULL;
@@ -241,6 +230,58 @@ class SignagePlayerHooks {
     catch (\Throwable $e) {
       return NULL;
     }
+  }
+
+  /**
+   * Extract a submitted playlist item sort order from Paragraphs input.
+   */
+  private static function extractSubmittedSortOrder(mixed $input): ?int {
+    if (!is_array($input)) {
+      return NULL;
+    }
+
+    foreach ([
+      ['subform', 'field_sort_order', 0, 'value'],
+      ['subform', 'field_sort_order', 'widget', 0, 'value'],
+      ['field_sort_order', 0, 'value'],
+      ['field_sort_order', 'widget', 0, 'value'],
+    ] as $path) {
+      $value = self::getNestedValue($input, $path);
+      if ($value !== NULL && $value !== '') {
+        return (int) $value;
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Extract the current sort order from the rendered number widget.
+   */
+  private static function extractSortOrderFromElement(array $element): ?int {
+    foreach (['#value', '#default_value'] as $key) {
+      if (isset($element[$key]) && $element[$key] !== '') {
+        return (int) $element[$key];
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Read a nested array value without depending on Drupal utility classes.
+   */
+  private static function getNestedValue(array $values, array $path): mixed {
+    $current = $values;
+    foreach ($path as $key) {
+      if (!is_array($current) || !array_key_exists($key, $current)) {
+        return NULL;
+      }
+
+      $current = $current[$key];
+    }
+
+    return $current;
   }
 
 }

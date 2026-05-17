@@ -1,0 +1,29 @@
+uuid: d699ebb5-4932-4b8d-9ce3-11b4fb71c704
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_screen_group_screens
+    - node.type.screen
+    - node.type.screen_group
+id: node.screen_group.field_screen_group_screens
+field_name: field_screen_group_screens
+entity_type: node
+bundle: screen_group
+label: Screens
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      screen: screen
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

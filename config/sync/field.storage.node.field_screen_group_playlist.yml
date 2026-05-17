@@ -1,0 +1,19 @@
+uuid: 8e2a8b7b-361b-4978-b2fe-edfe6e8491be
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_screen_group_playlist
+field_name: field_screen_group_playlist
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,17 +1,17 @@
-uuid: 69a61122-43fa-424e-be65-222ff319f135
+uuid: 7f7affc5-a689-4552-9463-fbee36811af7
 langcode: en
 status: true
 dependencies:
   module:
-    - datetime_range
+    - datetime
     - paragraphs
-id: paragraph.field_start_and_end_date
-field_name: field_start_and_end_date
+id: paragraph.field_end_at
+field_name: field_end_at
 entity_type: paragraph
-type: daterange
+type: datetime
 settings:
   datetime_type: datetime
-module: datetime_range
+module: datetime
 locked: false
 cardinality: 1
 translatable: true

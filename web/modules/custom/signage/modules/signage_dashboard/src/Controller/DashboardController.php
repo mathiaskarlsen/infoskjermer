@@ -69,6 +69,29 @@ final class DashboardController extends ControllerBase {
         ],
       ],
 
+      'quick_actions_section' => [
+        '#type' => 'container',
+        '#attributes' => [
+          'class' => ['dashboard-panel'],
+        ],
+        'title' => [
+          '#type' => 'html_tag',
+          '#tag' => 'h3',
+          '#value' => (string) $this->t('Hurtighandlinger'),
+        ],
+        'help' => [
+          '#type' => 'html_tag',
+          '#tag' => 'p',
+          '#value' => (string) $this->t('Lokalt innhold vises bare på én skjerm. Felles innhold kommer fra skjermgrupper.'),
+          '#attributes' => [
+            'class' => ['dashboard-section-subtitle'],
+          ],
+        ],
+        'content' => $this->buildQuickActionsSection(),
+      ],
+
+      'admin_section' => $account->hasPermission('administer signage access') ? $this->buildAdminSection() : [],
+
       'shared_messages_section' => [
         '#type' => 'container',
         '#attributes' => [
@@ -92,11 +115,134 @@ final class DashboardController extends ControllerBase {
         'title' => [
           '#type' => 'html_tag',
           '#tag' => 'h3',
-          '#value' => (string) $this->t('Dine skjermer (@count)', [
+          '#value' => (string) $this->t('Tildelte skjermer (@count)', [
             '@count' => count($screens),
           ]),
         ],
         'content' => $this->buildMyScreensSection($screens),
+      ],
+    ];
+  }
+
+  private function buildAdminSection(): array {
+    return [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['dashboard-panel'],
+      ],
+      'title' => [
+        '#type' => 'html_tag',
+        '#tag' => 'h3',
+        '#value' => (string) $this->t('Administrator'),
+      ],
+      'content' => $this->buildAdminLinks(),
+    ];
+  }
+
+  private function buildAdminLinks(): array {
+    $items = [
+      [
+        '#type' => 'link',
+        '#title' => $this->t('Manage screens'),
+        '#url' => Url::fromUri('internal:/admin/signage/screens'),
+        '#options' => [
+          'attributes' => [
+            'class' => ['dashboard-action-link'],
+          ],
+        ],
+      ],
+      [
+        '#type' => 'link',
+        '#title' => $this->t('Manage screen access'),
+        '#url' => Url::fromRoute('signage_access.admin'),
+        '#options' => [
+          'attributes' => [
+            'class' => ['dashboard-action-link'],
+          ],
+        ],
+      ],
+    ];
+
+    $createScreenUrl = Url::fromRoute('node.add', ['node_type' => 'screen']);
+    if ($createScreenUrl->access($this->currentUser())) {
+      $items[] = [
+        '#type' => 'link',
+        '#title' => $this->t('Create new screen'),
+        '#url' => $createScreenUrl,
+        '#options' => [
+          'attributes' => [
+            'class' => ['dashboard-action-link'],
+          ],
+        ],
+      ];
+    }
+
+    return [
+      '#theme' => 'item_list',
+      '#items' => $items,
+      '#attributes' => [
+        'class' => ['dashboard-admin-actions'],
+      ],
+    ];
+  }
+
+  private function buildQuickActionsSection(): array {
+    return [
+      '#theme' => 'item_list',
+      '#items' => [
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Opprett innhold'),
+          '#url' => Url::fromRoute('node.add', ['node_type' => 'slide']),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Opprett spilleliste'),
+          '#url' => Url::fromRoute('node.add', ['node_type' => 'playlist']),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Opprett skjermgruppe'),
+          '#url' => Url::fromRoute('node.add', ['node_type' => 'screen_group']),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Send fellesmelding'),
+          '#url' => Url::fromRoute('signage_share.share_slides'),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+        [
+          '#type' => 'link',
+          '#title' => $this->t('Mitt innhold'),
+          '#url' => Url::fromUri('internal:/dashboard/content'),
+          '#options' => [
+            'attributes' => [
+              'class' => ['dashboard-action-link'],
+            ],
+          ],
+        ],
+      ],
+      '#attributes' => [
+        'class' => ['dashboard-quick-actions'],
       ],
     ];
   }
@@ -110,7 +256,8 @@ final class DashboardController extends ControllerBase {
     $nids = $storage->getQuery()
       ->accessCheck(TRUE)
       ->condition('type', 'screen')
-      ->condition('uid', (int) $this->currentUser()->id())
+      ->condition('status', 1)
+      ->condition('field_screen_access_users.target_id', (int) $this->currentUser()->id())
       ->sort('created', 'DESC')
       ->execute();
 
@@ -123,6 +270,38 @@ final class DashboardController extends ControllerBase {
     return array_values(array_filter(
       $nodes,
       static fn ($node) => $node instanceof NodeInterface
+    ));
+  }
+
+  /**
+   * @return \Drupal\node\NodeInterface[]
+   */
+  private function loadScreenGroupsForScreen(NodeInterface $screen): array {
+    if (!$screen->id()) {
+      return [];
+    }
+
+    try {
+      $storage = $this->entityTypeManager()->getStorage('node');
+      $nids = $storage->getQuery()
+        ->accessCheck(TRUE)
+        ->condition('type', 'screen_group')
+        ->condition('status', 1)
+        ->condition('field_screen_group_screens.target_id', (int) $screen->id())
+        ->sort('title', 'ASC')
+        ->execute();
+    }
+    catch (\Throwable) {
+      return [];
+    }
+
+    if (!$nids) {
+      return [];
+    }
+
+    return array_values(array_filter(
+      $storage->loadMultiple($nids),
+      static fn ($node) => $node instanceof NodeInterface && $node->bundle() === 'screen_group' && $node->hasField('field_screen_group_screens')
     ));
   }
 
@@ -172,7 +351,7 @@ final class DashboardController extends ControllerBase {
 
   private function buildMyScreensSection(array $screens): array {
     if (!$screens) {
-      return $this->buildEmptyMessage($this->t('Du har ingen skjermer ennå.'));
+      return $this->buildEmptyMessage($this->t('Du har ingen tildelte skjermer ennå.'));
     }
 
     $build = [
@@ -202,6 +381,21 @@ final class DashboardController extends ControllerBase {
       }
 
       $active_media = $this->collectActiveMediaForScreen($screen);
+      $screen_groups = $this->loadScreenGroupsForScreen($screen);
+      $screen_group_summary = $this->buildScreenGroupMetaValue($screen_groups);
+      if ($screen_groups) {
+        $remaining_group_count = count($screen_groups) - min(count($screen_groups), 3);
+        if ($remaining_group_count > 0) {
+          $screen_group_summary['more'] = [
+            '#type' => 'html_tag',
+            '#tag' => 'span',
+            '#value' => (string) $this->t(' + @count til', ['@count' => $remaining_group_count]),
+            '#attributes' => [
+              'class' => ['dashboard-meta-value'],
+            ],
+          ];
+        }
+      }
 
       $build['item_' . $index] = [
         '#type' => 'container',
@@ -221,13 +415,11 @@ final class DashboardController extends ControllerBase {
               'class' => ['dashboard-screen-item__main'],
             ],
             'title' => [
-              '#type' => 'link',
-              '#title' => $screen->label(),
-              '#url' => Url::fromRoute('entity.node.edit_form', ['node' => $screen->id()]),
-              '#options' => [
-                'attributes' => [
-                  'class' => ['dashboard-screen-item__title'],
-                ],
+              '#type' => 'html_tag',
+              '#tag' => 'span',
+              '#value' => $screen->label(),
+              '#attributes' => [
+                'class' => ['dashboard-screen-item__title'],
               ],
             ],
             'meta' => [
@@ -244,7 +436,7 @@ final class DashboardController extends ControllerBase {
                 'label' => [
                   '#type' => 'html_tag',
                   '#tag' => 'span',
-                  '#value' => (string) $this->t('Playlist:'),
+                  '#value' => (string) $this->t('Lokal spilleliste:'),
                   '#attributes' => [
                     'class' => ['dashboard-meta-label'],
                   ],
@@ -269,6 +461,7 @@ final class DashboardController extends ControllerBase {
                       ],
                     ],
               ],
+              'screen_groups' => $this->buildLinkedMetaItem($this->t('Felles innhold:'), $screen_group_summary),
             ],
           ],
 
@@ -301,6 +494,52 @@ final class DashboardController extends ControllerBase {
             'class' => ['dashboard-screen-media', 'dashboard-screen-media--collapsible'],
           ],
           'content' => $this->buildScreenMediaSection($active_media),
+        ],
+      ];
+    }
+
+    return $build;
+  }
+
+  private function buildScreenGroupMetaValue(array $screen_groups): array {
+    if (!$screen_groups) {
+      return [
+        '#type' => 'html_tag',
+        '#tag' => 'span',
+        '#value' => (string) $this->t('Ingen skjermgrupper'),
+        '#attributes' => [
+          'class' => ['dashboard-meta-value'],
+        ],
+      ];
+    }
+
+    $build = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['dashboard-meta-value'],
+      ],
+    ];
+
+    $visible_groups = array_slice($screen_groups, 0, 3);
+    foreach ($visible_groups as $index => $group) {
+      if (!$group instanceof NodeInterface) {
+        continue;
+      }
+
+      if ($index > 0) {
+        $build['separator_' . $index] = [
+          '#plain_text' => ', ',
+        ];
+      }
+
+      $build['group_' . $index] = [
+        '#type' => 'link',
+        '#title' => $group->label(),
+        '#url' => Url::fromRoute('entity.node.canonical', ['node' => $group->id()]),
+        '#options' => [
+          'attributes' => [
+            'class' => ['dashboard-meta-link'],
+          ],
         ],
       ];
     }
@@ -609,6 +848,24 @@ final class DashboardController extends ControllerBase {
           'class' => ['dashboard-meta-value'],
         ],
       ],
+    ];
+  }
+
+  private function buildLinkedMetaItem($label, array $value): array {
+    return [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['dashboard-meta-item'],
+      ],
+      'label' => [
+        '#type' => 'html_tag',
+        '#tag' => 'span',
+        '#value' => (string) $label,
+        '#attributes' => [
+          'class' => ['dashboard-meta-label'],
+        ],
+      ],
+      'value' => $value,
     ];
   }
 

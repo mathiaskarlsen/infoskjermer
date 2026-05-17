@@ -1,21 +1,21 @@
-uuid: fb93f31a-d67f-4385-a929-ba1d03fb6c36
+uuid: 308db285-e322-4acc-b8c6-41e4c5309fdb
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.paragraph.field_time_range
+    - field.storage.paragraph.field_end_at
     - paragraphs.paragraphs_type.playlist_item
   module:
-    - time_field
-id: paragraph.playlist_item.field_time_range
-field_name: field_time_range
+    - datetime
+id: paragraph.playlist_item.field_end_at
+field_name: field_end_at
 entity_type: paragraph
 bundle: playlist_item
-label: 'Time range'
+label: 'End at'
 description: ''
 required: false
 translatable: false
 default_value: {  }
 default_value_callback: ''
 settings: {  }
-field_type: time_range
+field_type: datetime

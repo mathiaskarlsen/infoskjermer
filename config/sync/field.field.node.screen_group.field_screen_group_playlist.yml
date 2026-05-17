@@ -1,0 +1,29 @@
+uuid: c81e5857-0fc6-474b-889b-18f71af1e037
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_screen_group_playlist
+    - node.type.playlist
+    - node.type.screen_group
+id: node.screen_group.field_screen_group_playlist
+field_name: field_screen_group_playlist
+entity_type: node
+bundle: screen_group
+label: Playlist
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      playlist: playlist
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

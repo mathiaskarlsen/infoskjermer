@@ -4,11 +4,18 @@ status: true
 dependencies:
   config:
     - filter.format.basic_html
+    - media.type.image
+    - media.type.video
+    - node.type.playlist
+    - node.type.screen_group
+    - node.type.slide
   module:
+    - block_content
     - comment
     - file
     - filter
     - media
+    - node
     - search
     - shortcut
     - system
@@ -19,12 +26,30 @@ label: 'Authenticated user'
 weight: 1
 is_admin: false
 permissions:
+  - 'access block library'
   - 'access comments'
   - 'access content'
   - 'access shortcuts'
+  - 'create image media'
+  - 'create playlist content'
+  - 'create screen_group content'
+  - 'create slide content'
+  - 'create video media'
   - 'delete own files'
+  - 'delete own image media'
+  - 'delete own playlist content'
+  - 'delete own screen_group content'
+  - 'delete own slide content'
+  - 'delete own video media'
+  - 'edit own image media'
+  - 'edit own playlist content'
+  - 'edit own screen_group content'
+  - 'edit own slide content'
+  - 'edit own video media'
   - 'post comments'
   - 'search content'
   - 'skip comment approval'
   - 'use text format basic_html'
   - 'view media'
+  - 'view own unpublished content'
+  - 'view own unpublished media'

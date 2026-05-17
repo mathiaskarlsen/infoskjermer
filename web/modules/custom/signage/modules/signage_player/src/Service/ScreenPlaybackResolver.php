@@ -35,6 +35,8 @@ class ScreenPlaybackResolver {
         'image_items' => 0,
         'valid_slide_items' => 0,
         'duplicate_items_skipped' => 0,
+        'screen_groups_found' => 0,
+        'group_playlists_found' => 0,
         'fallback_reason' => null,
       ],
       'items' => [],
@@ -55,17 +57,11 @@ class ScreenPlaybackResolver {
     ];
     $result['status']['screen_found'] = true;
 
-    if (!$screen->hasField('field_screen_playlist') || $screen->get('field_screen_playlist')->isEmpty()) {
-      $result['status']['fallback_reason'] = 'playlists_missing';
-      return $result;
-    }
-
-    $playlists = [];
-    foreach ($screen->get('field_screen_playlist')->referencedEntities() as $playlist) {
-      if ($playlist instanceof NodeInterface && $playlist->bundle() === 'playlist') {
-        $playlists[] = $playlist;
-      }
-    }
+    $directPlaylists = $this->collectPlaylistsFromField($screen, 'field_screen_playlist');
+    $groupPlayback = $this->loadGroupPlayback((int) $screen->id());
+    $result['status']['screen_groups_found'] = $groupPlayback['screen_groups_found'];
+    $result['status']['group_playlists_found'] = $groupPlayback['group_playlists_found'];
+    $playlists = $this->deduplicatePlaylists(array_merge($directPlaylists, $groupPlayback['playlists']));
 
     if (!$playlists) {
       $result['status']['fallback_reason'] = 'playlists_missing';
@@ -156,6 +152,81 @@ class ScreenPlaybackResolver {
     return $result;
   }
 
+  /**
+   * @return \Drupal\node\NodeInterface[]
+   */
+  protected function collectPlaylistsFromField(NodeInterface $entity, string $fieldName): array {
+    if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
+      return [];
+    }
+
+    $playlists = [];
+    foreach ($entity->get($fieldName)->referencedEntities() as $playlist) {
+      if ($playlist instanceof NodeInterface && $playlist->bundle() === 'playlist') {
+        $playlists[] = $playlist;
+      }
+    }
+
+    return $playlists;
+  }
+
+  protected function loadGroupPlayback(int $screenId): array {
+    $result = [
+      'screen_groups_found' => 0,
+      'group_playlists_found' => 0,
+      'playlists' => [],
+    ];
+
+    $storage = $this->entityTypeManager->getStorage('node');
+    $groupIds = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('type', 'screen_group')
+      ->condition('status', 1)
+      ->condition('field_screen_group_screens.target_id', $screenId)
+      ->execute();
+
+    if (!$groupIds) {
+      return $result;
+    }
+
+    $groups = $storage->loadMultiple($groupIds);
+
+    foreach ($groups as $group) {
+      if (!$group instanceof NodeInterface || $group->bundle() !== 'screen_group') {
+        continue;
+      }
+
+      $result['screen_groups_found']++;
+      $groupPlaylists = $this->collectPlaylistsFromField($group, 'field_screen_group_playlist');
+      $result['group_playlists_found'] += count($groupPlaylists);
+      $result['playlists'] = array_merge($result['playlists'], $groupPlaylists);
+    }
+
+    return $result;
+  }
+
+  /**
+   * @param \Drupal\node\NodeInterface[] $playlists
+   *
+   * @return \Drupal\node\NodeInterface[]
+   */
+  protected function deduplicatePlaylists(array $playlists): array {
+    $deduplicated = [];
+    $seen = [];
+
+    foreach ($playlists as $playlist) {
+      $id = (int) $playlist->id();
+      if (isset($seen[$id])) {
+        continue;
+      }
+
+      $seen[$id] = true;
+      $deduplicated[] = $playlist;
+    }
+
+    return $deduplicated;
+  }
+
   protected function inferFallbackReason(array $status): string {
     if ($status['total_items'] === 0) {
       return 'playlists_empty';
@@ -187,13 +258,33 @@ class ScreenPlaybackResolver {
     $now = $this->time->getCurrentTime();
     $localNow = $this->getLocalDateTime($now);
 
-    return $this->isInDateRange($item, $now)
-      && $this->isOnActiveDay($item, $localNow)
+    if (!$this->isInDateRange($item, $now)) {
+      return false;
+    }
+
+    if (!$this->usesDayTimeSchedule($item)) {
+      return true;
+    }
+
+    return $this->isOnActiveDay($item, $localNow)
       && $this->isInTimeRange($item, $localNow);
   }
 
+  protected function usesDayTimeSchedule(ParagraphInterface $item): bool {
+    if (!$item->hasField('field_use_day_time_schedule')) {
+      return true;
+    }
+
+    if ($item->get('field_use_day_time_schedule')->isEmpty()) {
+      return false;
+    }
+
+    return (bool) $item->get('field_use_day_time_schedule')->value;
+  }
+
   protected function isInDateRange(ParagraphInterface $item, int $now): bool {
-    [$start, $end] = $this->getDateRangeTimestamps($item, 'field_start_and_end_date');
+    $start = $this->getTimestampFromField($item, 'field_start_at');
+    $end = $this->getTimestampFromField($item, 'field_end_at');
 
     if ($start === null && $end === null) {
       return true;
@@ -267,37 +358,17 @@ class ScreenPlaybackResolver {
     return (new \DateTimeImmutable('@' . $timestamp))->setTimezone(new \DateTimeZone($tz));
   }
 
-  /**
-   * @return array{0: ?int, 1: ?int}
-   */
-  protected function getDateRangeTimestamps(ParagraphInterface $item, string $fieldName): array {
-    [$start, $end] = $this->getDateRangeStrings($item, $fieldName);
+  protected function getDateStringFromField(ParagraphInterface $item, string $fieldName): ?string {
+    if (!$item->hasField($fieldName) || $item->get($fieldName)->isEmpty()) {
+      return null;
+    }
 
-    return [
-      $this->parseDatetime($start),
-      $this->parseDatetime($end),
-    ];
+    $value = $item->get($fieldName)->value ?? null;
+    return $value ? (string) $value : null;
   }
 
-  /**
-   * @return array{0: ?string, 1: ?string}
-   */
-  protected function getDateRangeStrings(ParagraphInterface $item, string $fieldName): array {
-    if (!$item->hasField($fieldName) || $item->get($fieldName)->isEmpty()) {
-      return [null, null];
-    }
-
-    $first = $item->get($fieldName)->first();
-    if (!$first) {
-      return [null, null];
-    }
-
-    $raw = $first->getValue();
-
-    return [
-      isset($raw['value']) && $raw['value'] !== '' ? (string) $raw['value'] : null,
-      isset($raw['end_value']) && $raw['end_value'] !== '' ? (string) $raw['end_value'] : null,
-    ];
+  protected function getTimestampFromField(ParagraphInterface $item, string $fieldName): ?int {
+    return $this->parseDatetime($this->getDateStringFromField($item, $fieldName));
   }
 
   protected function parseDatetime(?string $value): ?int {
@@ -342,8 +413,6 @@ class ScreenPlaybackResolver {
       return null;
     }
 
-    [$startAt, $endAt] = $this->getDateRangeStrings($playlistItem, 'field_start_and_end_date');
-
     return [
       'slide_id' => (int) $slide->id(),
       'type' => 'image',
@@ -352,8 +421,8 @@ class ScreenPlaybackResolver {
       'media_url' => $mediaUrl,
       'duration' => $this->getIntegerField($imageParagraph, 'field_duration_seconds', 10),
       'order' => $this->getIntegerField($playlistItem, 'field_sort_order', 1),
-      'start_at' => $startAt,
-      'end_at' => $endAt,
+      'start_at' => $this->getDateStringFromField($playlistItem, 'field_start_at'),
+      'end_at' => $this->getDateStringFromField($playlistItem, 'field_end_at'),
     ];
   }
 

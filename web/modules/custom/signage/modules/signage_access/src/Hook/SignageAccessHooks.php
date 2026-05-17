@@ -27,54 +27,147 @@ class SignageAccessHooks {
   /**
    * Implements hook_ENTITY_TYPE_access() for node entities.
    *
-   * Grants access to 'screen' nodes if:
-   *  1. The user is the original author (owner), or
-   *  2. The user is listed in field_screen_access_users.
+   * Grants screen view access to owners and assigned users, while keeping
+   * screen editing owner/admin-only. Also grants access to local playlists
+   * attached directly to an accessible screen.
    *
-   * Admins with 'administer nodes' or 'edit any screen content' bypass this
-   * automatically via Drupal core — we return neutral() for them.
+   * Admins bypass this via Drupal core — we return neutral() for them.
    */
   #[Hook('node_access')]
   public function nodeAccess(NodeInterface $node, $op, AccountInterface $account): AccessResultInterface {
-    if ($node->bundle() !== 'screen') {
-      return AccessResult::neutral();
-    }
-
-    // Only intercept view and update operations.
     if (!in_array($op, ['view', 'update'])) {
       return AccessResult::neutral();
     }
 
-    // Let core/admin permissions handle admins.
-    if (
-      $account->hasPermission('administer nodes') ||
-      $account->hasPermission('edit any screen content')
-    ) {
-      return AccessResult::neutral();
-    }
+    if ($node->bundle() === 'screen') {
+      if (
+        $account->hasPermission('administer nodes') ||
+        $account->hasPermission('edit any screen content')
+      ) {
+        return AccessResult::neutral();
+      }
 
-    // Grant access to the screen's author.
-    if ($node->getOwnerId() == $account->id()) {
-      return AccessResult::allowed()
+      $is_owner = (int) $node->getOwnerId() === (int) $account->id();
+
+      if ($op === 'view' && ($is_owner || $this->accountHasScreenClaim($node, $account))) {
+        return AccessResult::allowed()
+          ->cachePerUser()
+          ->addCacheableDependency($node);
+      }
+
+      if ($op === 'update' && $is_owner) {
+        return AccessResult::allowed()
+          ->cachePerUser()
+          ->addCacheableDependency($node);
+      }
+
+      return AccessResult::forbidden()
         ->cachePerUser()
         ->addCacheableDependency($node);
     }
 
-    // Grant access if the user is in the allowed users field.
-    if ($node->hasField('field_screen_access_users')) {
-      foreach ($node->get('field_screen_access_users')->getValue() as $ref) {
-        if ((int) $ref['target_id'] === (int) $account->id()) {
-          return AccessResult::allowed()
-            ->cachePerUser()
-            ->addCacheableDependency($node);
-        }
+    if ($node->bundle() === 'playlist') {
+      return $this->playlistNodeAccess($node, $account);
+    }
+
+    return AccessResult::neutral();
+  }
+
+  /**
+   * Grants playlist access through assigned screens that reference it directly.
+   */
+  private function playlistNodeAccess(NodeInterface $node, AccountInterface $account): AccessResultInterface {
+    if (
+      $account->hasPermission('administer nodes') ||
+      $account->hasPermission('edit any playlist content')
+    ) {
+      return AccessResult::neutral();
+    }
+
+    $screens = [];
+    try {
+      $storage = \Drupal::entityTypeManager()->getStorage('node');
+      $screen_ids = $storage->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('type', 'screen')
+        ->condition('status', 1)
+        ->condition('field_screen_playlist.target_id', (int) $node->id())
+        ->execute();
+
+      if ($screen_ids) {
+        $screens = $storage->loadMultiple($screen_ids);
+      }
+    }
+    catch (\Throwable) {
+      $screens = [];
+    }
+
+    $matching_screens = [];
+    $has_access = FALSE;
+
+    foreach ($screens as $screen) {
+      if (!$screen instanceof NodeInterface || $screen->bundle() !== 'screen') {
+        continue;
+      }
+
+      if (!$this->screenReferencesPlaylist($screen, (int) $node->id())) {
+        continue;
+      }
+
+      $matching_screens[] = $screen;
+
+      if ($this->accountHasScreenClaim($screen, $account)) {
+        $has_access = TRUE;
       }
     }
 
-    // Explicitly deny — this user has no claim to this screen.
-    return AccessResult::forbidden()
+    $result = ($has_access ? AccessResult::allowed() : AccessResult::neutral())
       ->cachePerUser()
       ->addCacheableDependency($node);
+
+    foreach ($matching_screens as $screen) {
+      $result->addCacheableDependency($screen);
+    }
+
+    return $result;
+  }
+
+  /**
+   * Checks that a screen still directly references the playlist.
+   */
+  private function screenReferencesPlaylist(NodeInterface $screen, int $playlist_id): bool {
+    if (!$screen->hasField('field_screen_playlist') || $screen->get('field_screen_playlist')->isEmpty()) {
+      return FALSE;
+    }
+
+    foreach ($screen->get('field_screen_playlist')->getValue() as $ref) {
+      if ((int) ($ref['target_id'] ?? 0) === $playlist_id) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Checks whether an account is assigned to or owns a screen.
+   */
+  private function accountHasScreenClaim(NodeInterface $screen, AccountInterface $account): bool {
+    if ((int) $screen->getOwnerId() === (int) $account->id()) {
+      return TRUE;
+    }
+
+    if (!$screen->hasField('field_screen_access_users')) {
+      return FALSE;
+    }
+
+    foreach ($screen->get('field_screen_access_users')->getValue() as $ref) {
+      if ((int) ($ref['target_id'] ?? 0) === (int) $account->id()) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
   }
 
   /**
@@ -89,7 +182,7 @@ class SignageAccessHooks {
       return;
     }
 
-    if (!$this->currentUser->hasPermission('administer signage access')) {
+    if (!$this->currentUser->hasPermission('administer signage access') && isset($form['field_screen_access_users'])) {
       $form['field_screen_access_users']['#access'] = FALSE;
     }
   }

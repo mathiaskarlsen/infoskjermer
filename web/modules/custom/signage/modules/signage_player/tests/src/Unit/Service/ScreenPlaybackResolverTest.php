@@ -10,6 +10,7 @@ use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Language\Language;
 use Drupal\Core\Language\LanguageManagerInterface;
@@ -34,11 +35,13 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
 
   private EntityTypeManagerInterface&MockObject $entityTypeManager;
   private EntityStorageInterface&MockObject $nodeStorage;
+  private QueryInterface&MockObject $groupQuery;
   private TimeInterface&MockObject $time;
   private FileUrlGeneratorInterface&MockObject $fileUrlGenerator;
   private ConfigFactoryInterface&MockObject $configFactory;
 
   private ScreenPlaybackResolver $resolver;
+  private array $groupNodes = [];
 
   protected function setUp(): void {
     parent::setUp();
@@ -51,6 +54,22 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
     \Drupal::setContainer($container);
 
     $this->nodeStorage = $this->createMock(EntityStorageInterface::class);
+    $this->groupQuery = $this->createMock(QueryInterface::class);
+    $this->groupQuery->method('accessCheck')->with(FALSE)->willReturnSelf();
+    $this->groupQuery->method('condition')->willReturnSelf();
+    $this->groupQuery
+      ->method('execute')
+      ->willReturnCallback(fn(): array => array_keys($this->groupNodes));
+    $this->nodeStorage->method('getQuery')->willReturn($this->groupQuery);
+    $this->nodeStorage
+      ->method('loadMultiple')
+      ->willReturnCallback(function (?array $ids = NULL): array {
+        if ($ids === NULL) {
+          return $this->groupNodes;
+        }
+
+        return array_intersect_key($this->groupNodes, array_flip($ids));
+      });
 
     $this->entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $this->entityTypeManager
@@ -160,6 +179,8 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
     $result = $this->resolver->resolve(1);
 
     self::assertNull($result['status']['fallback_reason']);
+    self::assertSame(0, $result['status']['screen_groups_found']);
+    self::assertSame(0, $result['status']['group_playlists_found']);
     self::assertSame(1, $result['status']['items_found']);
     self::assertCount(1, $result['items']);
 
@@ -194,6 +215,69 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
     self::assertSame(2, $result['status']['playlists_found']);
     self::assertSame(3, $result['status']['items_found']);
     self::assertSame([201, 202, 203], array_column($result['items'], 'slide_id'));
+  }
+
+  public function testIncludesGroupPlaylistsAfterDirectPlaylists(): void {
+    $slideA = $this->mockSlide(801, title: 'Direct');
+    $slideB = $this->mockSlide(802, title: 'Group');
+
+    $directPlaylist = $this->mockPlaylist(10, [
+      $this->mockPlaylistItem(type: $this->mockImageParagraph($slideA), order: 1),
+    ]);
+    $groupPlaylist = $this->mockPlaylist(20, [
+      $this->mockPlaylistItem(type: $this->mockImageParagraph($slideB), order: 1),
+    ]);
+
+    $screen = $this->mockScreen(1, [$directPlaylist]);
+    $this->groupNodes = [
+      30 => $this->mockScreenGroup(30, [$groupPlaylist]),
+    ];
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(1, $result['status']['screen_groups_found']);
+    self::assertSame(1, $result['status']['group_playlists_found']);
+    self::assertSame(2, $result['status']['playlists_found']);
+    self::assertSame([10, 20], array_column($result['playlists'], 'id'));
+    self::assertSame([801, 802], array_column($result['items'], 'slide_id'));
+  }
+
+  public function testDeduplicatesGroupPlaylistAlreadyReferencedByScreen(): void {
+    $slide = $this->mockSlide(901);
+    $playlist = $this->mockPlaylist(10, [
+      $this->mockPlaylistItem(type: $this->mockImageParagraph($slide), order: 1),
+    ]);
+
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->groupNodes = [
+      30 => $this->mockScreenGroup(30, [$playlist]),
+    ];
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(1, $result['status']['group_playlists_found']);
+    self::assertSame(1, $result['status']['playlists_found']);
+    self::assertSame([10], array_column($result['playlists'], 'id'));
+    self::assertSame([901], array_column($result['items'], 'slide_id'));
+  }
+
+  public function testScreenWithoutGroupsBehavesLikeDirectPlaylistOnly(): void {
+    $slide = $this->mockSlide(1001);
+    $playlist = $this->mockPlaylist(10, [
+      $this->mockPlaylistItem(type: $this->mockImageParagraph($slide), order: 1),
+    ]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(0, $result['status']['screen_groups_found']);
+    self::assertSame(0, $result['status']['group_playlists_found']);
+    self::assertSame(1, $result['status']['playlists_found']);
+    self::assertSame([10], array_column($result['playlists'], 'id'));
+    self::assertSame([1001], array_column($result['items'], 'slide_id'));
   }
 
   public function testDeduplicatesSlidesAcrossPlaylistsKeepingFirstOccurrence(): void {
@@ -273,6 +357,70 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
 
     self::assertSame(1, $result['status']['items_found']);
     self::assertNull($result['status']['fallback_reason']);
+  }
+
+  public function testIncludesItemWithOnlyFutureEndDate(): void {
+    $slide = $this->mockSlide(502);
+    $active = $this->mockPlaylistItem(
+      end: '2030-01-01T00:00:00',
+      type: $this->mockImageParagraph($slide),
+    );
+    $playlist = $this->mockPlaylist(10, [$active]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(1, $result['status']['items_found']);
+    self::assertNull($result['status']['fallback_reason']);
+  }
+
+  public function testSkipsItemWithOnlyPastEndDate(): void {
+    $slide = $this->mockSlide(503);
+    $expired = $this->mockPlaylistItem(
+      end: '2023-01-01T00:00:00',
+      type: $this->mockImageParagraph($slide),
+    );
+    $playlist = $this->mockPlaylist(10, [$expired]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(0, $result['status']['time_window_items']);
+    self::assertSame('all_items_outside_schedule', $result['status']['fallback_reason']);
+  }
+
+  public function testIncludesItemWithOnlyPastStartDate(): void {
+    $slide = $this->mockSlide(504);
+    $active = $this->mockPlaylistItem(
+      start: '2023-01-01T00:00:00',
+      type: $this->mockImageParagraph($slide),
+    );
+    $playlist = $this->mockPlaylist(10, [$active]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(1, $result['status']['items_found']);
+    self::assertNull($result['status']['fallback_reason']);
+  }
+
+  public function testSkipsItemWithOnlyFutureStartDate(): void {
+    $slide = $this->mockSlide(505);
+    $pending = $this->mockPlaylistItem(
+      start: '2030-01-01T00:00:00',
+      type: $this->mockImageParagraph($slide),
+    );
+    $playlist = $this->mockPlaylist(10, [$pending]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(0, $result['status']['time_window_items']);
+    self::assertSame('all_items_outside_schedule', $result['status']['fallback_reason']);
   }
 
   public function testIncludesItemWhenTodayMatchesActiveDay(): void {
@@ -365,6 +513,26 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
     self::assertSame('all_items_outside_schedule', $result['status']['fallback_reason']);
   }
 
+  public function testDayAndTimeScheduleIsIgnoredWhenToggleIsOff(): void {
+    $slide = $this->mockSlide(531);
+    $item = $this->mockPlaylistItem(
+      start: '2023-01-01T00:00:00',
+      end: '2030-01-01T00:00:00',
+      type: $this->mockImageParagraph($slide),
+      days: ['saturday', 'sunday'],
+      timeRange: ['from' => 0, 'to' => 60],
+      useDayTimeSchedule: FALSE,
+    );
+    $playlist = $this->mockPlaylist(10, [$item]);
+    $screen = $this->mockScreen(1, [$playlist]);
+    $this->nodeStorage->method('load')->with(1)->willReturn($screen);
+
+    $result = $this->resolver->resolve(1);
+
+    self::assertSame(1, $result['status']['items_found']);
+    self::assertNull($result['status']['fallback_reason']);
+  }
+
   public function testSkipsNonImageTypedParagraphs(): void {
     $videoTyped = $this->mockEntity(ParagraphInterface::class, [], ['bundle' => 'video']);
     $playlistItem = $this->mockPlaylistItem(type: $videoTyped);
@@ -451,6 +619,23 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
   }
 
   /**
+   * Build a NodeInterface mock representing a screen group.
+   */
+  private function mockScreenGroup(int $id, array $playlists): NodeInterface {
+    $field = $playlists
+      ? $this->fieldItem(['referenced' => $playlists])
+      : $this->fieldItem();
+
+    return $this->mockEntity(NodeInterface::class, [
+      'field_screen_group_playlist' => $field,
+    ], [
+      'bundle' => 'screen_group',
+      'id' => (string) $id,
+      'label' => 'Screen group ' . $id,
+    ]);
+  }
+
+  /**
    * Build a ParagraphInterface mock representing a playlist_item.
    *
    * @param list<string>|null $days
@@ -459,6 +644,9 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
    * @param array{from?: int, to?: int}|null $timeRange
    *   Time range to set on field_time_range. NULL omits the field entirely
    *   (no time-of-day restriction).
+   * @param bool|null $useDayTimeSchedule
+   *   Whether weekday/time restrictions are enabled. NULL omits the field
+   *   entirely for backward-compatible mocks.
    */
   private function mockPlaylistItem(
     bool $enabled = TRUE,
@@ -468,14 +656,12 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
     int $order = 1,
     ?array $days = NULL,
     ?array $timeRange = NULL,
+    ?bool $useDayTimeSchedule = NULL,
   ): ParagraphInterface {
-    $dateRange = ($start !== NULL || $end !== NULL)
-      ? $this->fieldItem(['value' => $start, 'end_value' => $end])
-      : $this->fieldItem();
-
     $fields = [
       'field_enabled' => $this->fieldItem(['value' => $enabled ? '1' : '0']),
-      'field_start_and_end_date' => $dateRange,
+      'field_start_at' => $start !== NULL ? $this->fieldItem(['value' => $start]) : $this->fieldItem(),
+      'field_end_at' => $end !== NULL ? $this->fieldItem(['value' => $end]) : $this->fieldItem(),
       'field_type' => $type !== NULL ? $this->fieldItem(['entity' => $type]) : $this->fieldItem(),
       'field_sort_order' => $this->fieldItem(['value' => (string) $order]),
     ];
@@ -486,6 +672,10 @@ final class ScreenPlaybackResolverTest extends UnitTestCase {
 
     if ($timeRange !== NULL) {
       $fields['field_time_range'] = $this->fieldItem($timeRange);
+    }
+
+    if ($useDayTimeSchedule !== NULL) {
+      $fields['field_use_day_time_schedule'] = $this->fieldItem(['value' => $useDayTimeSchedule ? '1' : '0']);
     }
 
     return $this->mockEntity(ParagraphInterface::class, $fields, [
