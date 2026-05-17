@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - core.entity_view_mode.node.teaser
     - node.type.screen
   module:
     - node
@@ -10,7 +11,7 @@ dependencies:
 id: screen_display
 label: 'Screen Display'
 module: views
-description: ''
+description: 'The view used by the player module to display content in fullscreen.'
 tag: ''
 base_table: node_field_data
 base_field: nid
@@ -143,12 +144,10 @@ display:
       style:
         type: default
       row:
-        type: fields
+        type: 'entity:node'
         options:
-          default_field_elements: true
-          inline: {  }
-          separator: ''
-          hide_empty: false
+          relationship: none
+          view_mode: teaser
       query:
         type: views_query
         options:

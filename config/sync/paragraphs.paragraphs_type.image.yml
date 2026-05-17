@@ -6,5 +6,5 @@ id: image
 label: Image
 icon_uuid: null
 icon_default: null
-description: ''
+description: 'Adds an image slide to a playlist item.'
 behavior_plugins: {  }
