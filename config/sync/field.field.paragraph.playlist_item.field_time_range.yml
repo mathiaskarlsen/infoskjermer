@@ -1,0 +1,21 @@
+uuid: fb93f31a-d67f-4385-a929-ba1d03fb6c36
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_time_range
+    - paragraphs.paragraphs_type.playlist_item
+  module:
+    - time_field
+id: paragraph.playlist_item.field_time_range
+field_name: field_time_range
+entity_type: paragraph
+bundle: playlist_item
+label: 'Time range'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: time_range

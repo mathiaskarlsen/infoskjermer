@@ -1,7 +1,8 @@
 name: 'Signage Share'
 type: module
 core_version_requirement: ^11
-package: Custom
+package: 'Digital Signage'
 dependencies:
+  - signage
   - node
   - user

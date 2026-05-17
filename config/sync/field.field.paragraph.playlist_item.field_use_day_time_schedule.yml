@@ -1,0 +1,23 @@
+uuid: efa8cc68-a932-485b-b9b8-3dc76f987b4a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_use_day_time_schedule
+    - paragraphs.paragraphs_type.playlist_item
+id: paragraph.playlist_item.field_use_day_time_schedule
+field_name: field_use_day_time_schedule
+entity_type: paragraph
+bundle: playlist_item
+label: 'Limit by days and time'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

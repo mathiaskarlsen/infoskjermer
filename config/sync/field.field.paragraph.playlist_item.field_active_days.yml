@@ -1,0 +1,21 @@
+uuid: a13fe207-cf02-4b9c-9116-aff42c4b41ff
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_active_days
+    - paragraphs.paragraphs_type.playlist_item
+  module:
+    - options
+id: paragraph.playlist_item.field_active_days
+field_name: field_active_days
+entity_type: paragraph
+bundle: playlist_item
+label: Days
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

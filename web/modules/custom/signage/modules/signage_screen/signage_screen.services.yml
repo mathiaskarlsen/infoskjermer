@@ -1,4 +1,7 @@
 services:
+  _defaults:
+    autoconfigure: true
+
   logger.channel.signage_screen:
     parent: logger.channel_base
     arguments: ['signage_screen']
@@ -8,3 +11,4 @@ services:
     arguments:
       - '@entity_type.manager'
       - '@logger.channel.signage_screen'
+  Drupal\signage_screen\Service\ScreenManager: '@signage_screen.screen_manager'

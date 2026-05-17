@@ -3,6 +3,7 @@
 namespace Drupal\signage_player\Service;
 
 use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
@@ -16,6 +17,7 @@ class ScreenPlaybackResolver {
     protected EntityTypeManagerInterface $entityTypeManager,
     protected TimeInterface $time,
     protected FileUrlGeneratorInterface $fileUrlGenerator,
+    protected ConfigFactoryInterface $configFactory,
   ) {}
 
   public function resolve(int $screenId): array {
@@ -254,7 +256,33 @@ class ScreenPlaybackResolver {
 
   protected function isActiveNow(ParagraphInterface $item): bool {
     $now = $this->time->getCurrentTime();
+    $localNow = $this->getLocalDateTime($now);
 
+    if (!$this->isInDateRange($item, $now)) {
+      return false;
+    }
+
+    if (!$this->usesDayTimeSchedule($item)) {
+      return true;
+    }
+
+    return $this->isOnActiveDay($item, $localNow)
+      && $this->isInTimeRange($item, $localNow);
+  }
+
+  protected function usesDayTimeSchedule(ParagraphInterface $item): bool {
+    if (!$item->hasField('field_use_day_time_schedule')) {
+      return true;
+    }
+
+    if ($item->get('field_use_day_time_schedule')->isEmpty()) {
+      return false;
+    }
+
+    return (bool) $item->get('field_use_day_time_schedule')->value;
+  }
+
+  protected function isInDateRange(ParagraphInterface $item, int $now): bool {
     $start = $this->getTimestampFromField($item, 'field_start_at');
     $end = $this->getTimestampFromField($item, 'field_end_at');
 
@@ -273,13 +301,78 @@ class ScreenPlaybackResolver {
     return $now >= $start && $now <= $end;
   }
 
-  protected function getTimestampFromField(ParagraphInterface $item, string $fieldName): ?int {
+  protected function isOnActiveDay(ParagraphInterface $item, \DateTimeImmutable $localNow): bool {
+    if (!$item->hasField('field_active_days') || $item->get('field_active_days')->isEmpty()) {
+      return true;
+    }
+
+    $today = strtolower($localNow->format('l'));
+
+    foreach ($item->get('field_active_days') as $entry) {
+      if ((string) $entry->value === $today) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  protected function isInTimeRange(ParagraphInterface $item, \DateTimeImmutable $localNow): bool {
+    if (!$item->hasField('field_time_range') || $item->get('field_time_range')->isEmpty()) {
+      return true;
+    }
+
+    $first = $item->get('field_time_range')->first();
+    if (!$first) {
+      return true;
+    }
+
+    $raw = $first->getValue();
+    $from = isset($raw['from']) && $raw['from'] !== '' && $raw['from'] !== null ? (int) $raw['from'] : null;
+    $to = isset($raw['to']) && $raw['to'] !== '' && $raw['to'] !== null ? (int) $raw['to'] : null;
+
+    if ($from === null && $to === null) {
+      return true;
+    }
+
+    $seconds = ((int) $localNow->format('H')) * 3600
+      + ((int) $localNow->format('i')) * 60
+      + (int) $localNow->format('s');
+
+    if ($from === null) {
+      return $seconds <= $to;
+    }
+    if ($to === null) {
+      return $seconds >= $from;
+    }
+
+    return $seconds >= $from && $seconds <= $to;
+  }
+
+  protected function getLocalDateTime(int $timestamp): \DateTimeImmutable {
+    $tz = (string) ($this->configFactory->get('system.date')->get('timezone.default') ?? '');
+    if ($tz === '') {
+      $tz = date_default_timezone_get();
+    }
+
+    return (new \DateTimeImmutable('@' . $timestamp))->setTimezone(new \DateTimeZone($tz));
+  }
+
+  protected function getDateStringFromField(ParagraphInterface $item, string $fieldName): ?string {
     if (!$item->hasField($fieldName) || $item->get($fieldName)->isEmpty()) {
       return null;
     }
 
-    $value = $item->get($fieldName)->value;
-    if (!$value) {
+    $value = $item->get($fieldName)->value ?? null;
+    return $value ? (string) $value : null;
+  }
+
+  protected function getTimestampFromField(ParagraphInterface $item, string $fieldName): ?int {
+    return $this->parseDatetime($this->getDateStringFromField($item, $fieldName));
+  }
+
+  protected function parseDatetime(?string $value): ?int {
+    if ($value === null) {
       return null;
     }
 
@@ -328,8 +421,8 @@ class ScreenPlaybackResolver {
       'media_url' => $mediaUrl,
       'duration' => $this->getIntegerField($imageParagraph, 'field_duration_seconds', 10),
       'order' => $this->getIntegerField($playlistItem, 'field_sort_order', 1),
-      'start_at' => $playlistItem->get('field_start_at')->value ?? null,
-      'end_at' => $playlistItem->get('field_end_at')->value ?? null,
+      'start_at' => $this->getDateStringFromField($playlistItem, 'field_start_at'),
+      'end_at' => $this->getDateStringFromField($playlistItem, 'field_end_at'),
     ];
   }
 

@@ -7,3 +7,4 @@ dependencies:
   - node
   - paragraphs
   - media
+  - time_field
